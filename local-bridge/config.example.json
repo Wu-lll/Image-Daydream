@@ -1,0 +1,13 @@
+{
+  "port": 8765,
+  "allowOrigin": "*",
+  "defaultBaseUrl": "",
+  "defaultApiKey": "",
+  "fallbacks": [
+    {
+      "baseUrl": "",
+      "apiKey": ""
+    }
+  ],
+  "legacyToolConfigDir": "C:\\Users\\Wu\\Tools\\OpenAI-Image\\config"
+}

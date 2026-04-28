@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: image-daydream
+    runtime: node
+    plan: free
+    autoDeploy: true
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: SESSION_TTL_HOURS
+        value: 36
+      - key: DEFAULT_IMAGE_MODEL
+        value: gpt-image-2

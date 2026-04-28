@@ -1,15 +1,15 @@
-# GPT Image Playground
+# Image Daydream
 
 基于 OpenAI 图像生成接口的图片生成与编辑工具。提供简洁的 Web UI，支持文本生成图片、参考图编辑、可视化参数调节、历史记录管理与本地数据导入导出。
 
 
 > 如有调用非本地的 HTTP API 的需求，请使用 GitHub Pages 版本或自行部署，因为 `.dev` 域名要求页面本身及其加载的资源（的来源）均为 HTTPS。
 
-**Vercel 部署版本在线体验：** 
-https://gpt-image-playground.cooksleep.dev
+**Render 在线体验：** 
+https://image-daydream.onrender.com
 
-**GitHub Pages 部署版本在线体验：**
-https://cooksleep.github.io/gpt_image_playground
+**GitHub 仓库：**
+https://github.com/Wu-lll/Image-Daydream
 
 ---
 
@@ -94,7 +94,7 @@ https://cooksleep.github.io/gpt_image_playground
 <details>
 <summary><strong>▲ 方式一：Vercel 一键部署 (推荐)</strong></summary>
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FCookSleep%2Fgpt_image_playground&project-name=gpt-image-playground&repository-name=gpt-image-playground)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FWu-lll%2FImage-Daydream&project-name=image-daydream&repository-name=Image-Daydream)
 
 点击上方按钮后，按 Vercel 页面提示导入仓库即可。项目已包含 `vercel.json`，Vercel 会自动执行 `npm install`、`npm run build`，并将 `dist/` 作为静态输出目录。
 
@@ -125,15 +125,15 @@ VITE_DEFAULT_API_URL=https://api.openai.com/v1
 ```bash
 docker run -d -p 8080:80 \
   -e API_URL=https://api.openai.com/v1 \
-  ghcr.io/cooksleep/gpt_image_playground:latest
+  ghcr.io/wu-lll/image-daydream:latest
 ```
 
 **使用 Docker Compose：**
 
 ```yaml
 services:
-  gpt-image-playground:
-    image: ghcr.io/cooksleep/gpt_image_playground:latest
+  image-daydream:
+    image: ghcr.io/wu-lll/image-daydream:latest
     environment:
       - API_URL=https://api.openai.com/v1
     ports:
@@ -148,7 +148,7 @@ services:
 **更新说明：**
 
 - 使用 `latest` 标签时，重新拉取镜像并重启容器即可更新到最新发布版本。
-- 如果希望固定版本，建议使用明确版本号标签，例如 `ghcr.io/cooksleep/gpt_image_playground:0.2.3`。
+- 如果希望固定版本，建议使用明确版本号标签，例如 `ghcr.io/wu-lll/image-daydream:0.2.3`。
 - Docker Compose 更新示例：
 
 ```bash
@@ -285,11 +285,11 @@ docker compose up -d
 例如：
 - 接入 New API 聊天应用：
   ```
-  https://gpt-image-playground.cooksleep.dev?apiUrl={address}&apiKey={key}
+  https://image-daydream.onrender.com?apiUrl={address}&apiKey={key}
   ```
 
   ```
-  https://cooksleep.github.io/gpt_image_playground?apiUrl={address}&apiKey={key}
+  https://image-daydream.onrender.com?apiUrl={address}&apiKey={key}
   ```
 
 ---

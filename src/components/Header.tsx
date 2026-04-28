@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { useStore } from '../store'
-import { useVersionCheck } from '../hooks/useVersionCheck'
 import HelpModal from './HelpModal'
 
 export default function Header() {
   const setShowSettings = useStore((s) => s.setShowSettings)
   const settings = useStore((s) => s.settings)
-  const { hasUpdate, latestRelease, dismiss } = useVersionCheck()
   const [showHelp, setShowHelp] = useState(false)
 
   return (
@@ -37,18 +35,6 @@ export default function Header() {
               </span>
             </div>
           </div>
-          {hasUpdate && latestRelease && (
-            <a
-              href={latestRelease.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={dismiss}
-              className="px-2 py-1 rounded-full border border-[rgba(184,92,75,0.18)] text-[10px] font-semibold bg-[rgba(184,92,75,0.9)] text-white hover:bg-[rgba(166,82,65,0.95)] transition-colors animate-fade-in leading-none"
-              title={`新版本 ${latestRelease.tag}`}
-            >
-              NEW
-            </a>
-          )}
         </div>
         <div className="flex items-center gap-1">
           <button

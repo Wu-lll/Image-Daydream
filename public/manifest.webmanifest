@@ -1,12 +1,12 @@
 {
-  "name": "GPT Image Playground",
-  "short_name": "GPT Image",
-  "description": "GPT Image Playground 图像生成工作台",
+  "name": "Image Daydream",
+  "short_name": "Daydream",
+  "description": "Image Daydream 图像生成工作台",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#030712",
-  "theme_color": "#111827",
+  "background_color": "#f8f0e6",
+  "theme_color": "#f8f0e6",
   "icons": [
     {
       "src": "./pwa-icon.svg",

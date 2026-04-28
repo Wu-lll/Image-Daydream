@@ -670,7 +670,7 @@ export async function exportData() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `gpt-image-playground-${Date.now()}.zip`
+    a.download = `image-daydream-${Date.now()}.zip`
     a.click()
     URL.revokeObjectURL(url)
     useStore.getState().showToast('数据已导出（不包含 API Key）', 'success')

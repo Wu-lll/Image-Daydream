@@ -51,6 +51,16 @@ export default function TaskGrid() {
     })
   }
 
+  const renderGridHeader = () => (
+    <div className="mb-3 flex items-end justify-between gap-3">
+      <div>
+        <h2 className="[font-family:var(--font-serif-display)] text-2xl font-medium tracking-normal text-[rgb(29,39,49)]">
+          作品墙
+        </h2>
+      </div>
+    </div>
+  )
+
   const beginSelection = (target: HTMLElement, clientX: number, clientY: number, isCtrl: boolean) => {
     startedOnCard.current = Boolean(target.closest('.task-card-wrapper'))
     startedWithCtrl.current = isCtrl
@@ -164,77 +174,82 @@ export default function TaskGrid() {
 
   if (!filteredTasks.length) {
     return (
-      <div className="rounded-[2rem] border border-dashed border-[rgba(120,95,72,0.18)] bg-[rgba(255,251,246,0.58)] py-24 text-center text-[rgba(124,109,97,0.82)] shadow-[0_18px_48px_rgba(88,64,43,0.06)] dark:text-gray-500">
-        {searchQuery || filterFavorite ? (
-          <p className="text-sm">没有找到匹配的记录</p>
-        ) : (
-          <>
-            <svg
-              className="w-16 h-16 mx-auto mb-4 text-[rgba(143,106,77,0.24)] dark:text-gray-700"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            <p className="text-sm font-medium text-[rgb(82,61,46)]">输入提示词开始生成图片</p>
-            <p className="mt-2 text-xs tracking-[0.16em] uppercase text-[rgba(124,109,97,0.72)]">Quiet canvas for image making</p>
-          </>
-        )}
-      </div>
+      <>
+        {renderGridHeader()}
+        <div className="rounded-[2rem] border border-dashed border-[rgba(63,86,110,0.2)] bg-[rgba(248,251,255,0.62)] py-24 text-center text-[rgba(102,118,136,0.82)] shadow-[0_18px_48px_rgba(42,59,77,0.07)] dark:text-gray-500">
+          {searchQuery || filterFavorite ? (
+            <p className="text-sm">没有找到匹配的记录</p>
+          ) : (
+            <>
+              <svg
+                className="w-16 h-16 mx-auto mb-4 text-[rgba(93,126,163,0.24)] dark:text-gray-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              <p className="text-sm font-medium text-[rgb(29,39,49)]">还没有作品。描述一个画面，开始第一张图。</p>
+            </>
+          )}
+        </div>
+      </>
     )
   }
 
   return (
-    <div 
-      data-task-grid-root
-      className="relative min-h-[50vh]"
-    >
-      <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-10">
-        {filteredTasks.map((task) => (
-          <div key={task.id} className="task-card-wrapper" data-task-id={task.id}>
-            <TaskCard
-              task={task}
-              onClick={(e) => {
-                if (Date.now() < suppressClickUntil.current) {
-                  e.preventDefault()
-                  return
-                }
-                suppressClickUntil.current = 0
-                const isCtrl = isMac ? e.metaKey : e.ctrlKey
-                if (isCtrl) {
-                  useStore.getState().toggleTaskSelection(task.id)
-                } else if (selectedTaskIds.length > 0) {
-                  clearSelection()
-                  setDetailTaskId(task.id)
-                } else {
-                  setDetailTaskId(task.id)
-                }
-              }}
-              onReuse={() => reuseConfig(task)}
-              onEditOutputs={() => editOutputs(task)}
-              onDelete={() => handleDelete(task)}
-              isSelected={selectedTaskIds.includes(task.id)}
-            />
-          </div>
-        ))}
+    <>
+      {renderGridHeader()}
+      <div
+        data-task-grid-root
+        className="relative min-h-[50vh]"
+      >
+        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-10">
+          {filteredTasks.map((task) => (
+            <div key={task.id} className="task-card-wrapper" data-task-id={task.id}>
+              <TaskCard
+                task={task}
+                onClick={(e) => {
+                  if (Date.now() < suppressClickUntil.current) {
+                    e.preventDefault()
+                    return
+                  }
+                  suppressClickUntil.current = 0
+                  const isCtrl = isMac ? e.metaKey : e.ctrlKey
+                  if (isCtrl) {
+                    useStore.getState().toggleTaskSelection(task.id)
+                  } else if (selectedTaskIds.length > 0) {
+                    clearSelection()
+                    setDetailTaskId(task.id)
+                  } else {
+                    setDetailTaskId(task.id)
+                  }
+                }}
+                onReuse={() => reuseConfig(task)}
+                onEditOutputs={() => editOutputs(task)}
+                onDelete={() => handleDelete(task)}
+                isSelected={selectedTaskIds.includes(task.id)}
+              />
+            </div>
+          ))}
+        </div>
+        {selectionBox && (
+          <div
+            className="fixed bg-blue-500/20 border border-blue-500/50 pointer-events-none z-[100]"
+            style={{
+              left: Math.min(selectionBox.startX, selectionBox.currentX),
+              top: Math.min(selectionBox.startY, selectionBox.currentY),
+              width: Math.abs(selectionBox.currentX - selectionBox.startX),
+              height: Math.abs(selectionBox.currentY - selectionBox.startY),
+            }}
+          />
+        )}
       </div>
-      {selectionBox && (
-        <div
-          className="fixed bg-blue-500/20 border border-blue-500/50 pointer-events-none z-[100]"
-          style={{
-            left: Math.min(selectionBox.startX, selectionBox.currentX),
-            top: Math.min(selectionBox.startY, selectionBox.currentY),
-            width: Math.abs(selectionBox.currentX - selectionBox.startX),
-            height: Math.abs(selectionBox.currentY - selectionBox.startY),
-          }}
-        />
-      )}
-    </div>
+    </>
   )
 }

@@ -81,9 +81,9 @@ export default function SettingsModal() {
     e.target.value = ''
   }
 
-  const sectionTitleClass = 'mb-3 text-sm font-medium text-[rgb(54,42,33)] dark:text-gray-200'
-  const inputClass = 'w-full rounded-2xl border border-[rgba(120,95,72,0.14)] bg-[rgba(255,252,247,0.84)] px-3 py-2.5 text-sm text-[rgb(54,42,33)] outline-none transition focus:border-[rgba(143,106,77,0.45)] dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200'
-  const hintClass = 'mt-1 text-[11px] leading-5 text-[rgba(124,109,97,0.88)] dark:text-gray-500'
+  const sectionTitleClass = 'mb-3 text-sm font-medium text-[rgb(29,39,49)] dark:text-gray-200'
+  const inputClass = 'w-full rounded-2xl border border-[rgba(63,86,110,0.16)] bg-[rgba(248,251,255,0.84)] px-3 py-2.5 text-sm text-[rgb(29,39,49)] outline-none transition focus:border-[rgba(93,126,163,0.45)] focus:shadow-[0_0_0_4px_rgba(93,126,163,0.1)] dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200'
+  const hintClass = 'mt-1 text-[11px] leading-5 text-[rgba(102,118,136,0.88)] dark:text-gray-500'
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
@@ -91,17 +91,17 @@ export default function SettingsModal() {
         className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-overlay-in"
         onClick={handleClose}
       />
-      <div className="relative z-10 w-full max-w-xl max-h-[85vh] overflow-y-auto rounded-[2rem] border border-[rgba(120,95,72,0.16)] bg-[rgba(255,251,246,0.96)] p-6 shadow-[0_28px_80px_rgba(66,42,24,0.18)] ring-1 ring-[rgba(82,61,46,0.05)] animate-modal-in custom-scrollbar dark:border-white/[0.08] dark:bg-gray-900/95 dark:ring-white/10">
+      <div className="relative z-10 w-full max-w-xl max-h-[85vh] overflow-y-auto rounded-[2rem] border border-[rgba(63,86,110,0.16)] bg-[rgba(248,251,255,0.96)] p-6 shadow-[0_28px_80px_rgba(42,59,77,0.18)] ring-1 ring-white/60 animate-modal-in custom-scrollbar dark:border-white/[0.08] dark:bg-gray-900/95 dark:ring-white/10">
         <div className="mb-5 flex items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="text-[11px] uppercase tracking-[0.28em] text-[rgba(120,95,72,0.66)]">Image Daydream</div>
-            <h3 className="text-lg font-semibold text-[rgb(54,42,33)] dark:text-gray-100">设置</h3>
+            <div className="[font-family:var(--font-serif-display)] text-base text-[rgb(29,39,49)]">Image Daydream</div>
+            <h3 className="text-lg font-semibold text-[rgb(29,39,49)] dark:text-gray-100">设置</h3>
           </div>
           <div className="flex items-center gap-3">
-            <span className="rounded-full border border-[rgba(120,95,72,0.16)] bg-[rgba(255,247,239,0.9)] px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-[rgba(120,95,72,0.72)] dark:text-gray-500 font-mono select-none">v{__APP_VERSION__}</span>
+            <span className="rounded-full border border-[rgba(63,86,110,0.16)] bg-[rgba(239,246,252,0.9)] px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-[rgba(102,118,136,0.72)] dark:text-gray-500 font-mono select-none">v{__APP_VERSION__}</span>
             <button
               onClick={handleClose}
-              className="rounded-full p-1 text-[rgba(124,109,97,0.72)] transition hover:bg-[rgba(143,106,77,0.08)] hover:text-[rgb(54,42,33)] dark:hover:bg-white/[0.06] dark:hover:text-gray-200"
+              className="rounded-full p-1 text-[rgba(102,118,136,0.72)] transition hover:bg-[rgba(93,126,163,0.08)] hover:text-[rgb(29,39,49)] dark:hover:bg-white/[0.06] dark:hover:text-gray-200"
               aria-label="关闭"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,10 +114,10 @@ export default function SettingsModal() {
         <div className="space-y-6">
           <section>
             <h4 className={sectionTitleClass}>线路选择</h4>
-            <div className="grid grid-cols-2 gap-2 rounded-2xl border border-[rgba(120,95,72,0.14)] bg-[rgba(255,252,247,0.68)] p-1 dark:border-white/[0.08] dark:bg-white/[0.03]">
+            <div className="grid grid-cols-2 gap-2 rounded-2xl border border-[rgba(63,86,110,0.16)] bg-[rgba(248,251,255,0.68)] p-1 dark:border-white/[0.08] dark:bg-white/[0.03]">
               {[
-                { label: '使用默认线路', value: 'site' as const },
-                { label: '使用我的 API', value: 'custom' as const },
+                { label: '默认线路', value: 'site' as const },
+                { label: '自定义 API', value: 'custom' as const },
               ].map((option) => {
                 const active = draft.credentialMode === option.value
                 return (
@@ -135,8 +135,8 @@ export default function SettingsModal() {
                     }}
                     className={`rounded-xl px-3 py-2 text-sm transition ${
                       active
-                        ? 'bg-[rgb(143,106,77)] text-white shadow-sm'
-                        : 'text-[rgba(82,61,46,0.82)] hover:bg-[rgba(143,106,77,0.08)] dark:text-gray-300 dark:hover:bg-white/[0.06]'
+                        ? 'bg-[rgb(47,57,67)] text-white shadow-sm'
+                        : 'text-[rgba(29,39,49,0.82)] hover:bg-[rgba(93,126,163,0.08)] dark:text-gray-300 dark:hover:bg-white/[0.06]'
                     }`}
                   >
                     {option.label}
@@ -148,12 +148,12 @@ export default function SettingsModal() {
           </section>
 
           {draft.credentialMode === 'site' ? (
-            <section className="pt-5 border-t border-[rgba(120,95,72,0.12)] dark:border-white/[0.08]">
+            <section className="pt-5 border-t border-[rgba(63,86,110,0.12)] dark:border-white/[0.08]">
               <h4 className={sectionTitleClass}>默认线路</h4>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: '线路 1', value: 'line1' as const, desc: '推荐' },
-                  { label: '线路 2', value: 'line2' as const, desc: '备用' },
+                  { label: '默认线路 1', value: 'line1' as const, desc: '推荐' },
+                  { label: '默认线路 2', value: 'line2' as const, desc: '备用' },
                 ].map((line) => {
                   const active = draft.providerLine === line.value
                   return (
@@ -167,24 +167,24 @@ export default function SettingsModal() {
                       }}
                       className={`rounded-2xl border px-3 py-3 text-left text-sm transition ${
                         active
-                          ? 'border-[rgba(143,106,77,0.42)] bg-[rgba(143,106,77,0.1)] text-[rgb(82,61,46)] shadow-sm'
-                          : 'border-[rgba(120,95,72,0.14)] bg-[rgba(255,252,247,0.72)] text-[rgba(82,61,46,0.78)] hover:bg-[rgba(143,106,77,0.06)] dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-300'
+                          ? 'border-[rgba(93,126,163,0.42)] bg-[rgba(93,126,163,0.1)] text-[rgb(29,39,49)] shadow-sm'
+                          : 'border-[rgba(63,86,110,0.14)] bg-[rgba(248,251,255,0.72)] text-[rgba(29,39,49,0.78)] hover:bg-[rgba(93,126,163,0.06)] dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-300'
                       }`}
                     >
                       <span className="block font-medium">{line.label}</span>
-                      <span className="mt-1 block text-[11px] text-[rgba(124,109,97,0.72)]">{line.desc}</span>
+                      <span className="mt-1 block text-[11px] text-[rgba(102,118,136,0.72)]">{line.desc}</span>
                     </button>
                   )
                 })}
               </div>
-              <p className={hintClass}>页面只显示线路编号，具体服务商、Base URL 和 Key 由 Render 环境变量控制。</p>
+              <p className={hintClass}>页面只显示线路编号，具体服务商、API URL 和 Key 由 Render 环境变量控制。</p>
             </section>
           ) : (
-            <section className="pt-5 border-t border-[rgba(120,95,72,0.12)] dark:border-white/[0.08]">
-              <h4 className={sectionTitleClass}>我的 API</h4>
+            <section className="pt-5 border-t border-[rgba(63,86,110,0.12)] dark:border-white/[0.08]">
+              <h4 className={sectionTitleClass}>自定义 API</h4>
               <div className="space-y-4">
                 <label className="block">
-                  <span className="block text-xs text-[rgba(110,92,75,0.82)] dark:text-gray-400 mb-1">Base URL</span>
+                  <span className="block text-xs text-[rgba(102,118,136,0.86)] dark:text-gray-400 mb-1">API URL</span>
                   <input
                     value={draft.baseUrl}
                     onChange={(e) => setDraft((prev) => ({ ...prev, baseUrl: e.target.value }))}
@@ -196,7 +196,7 @@ export default function SettingsModal() {
                 </label>
 
                 <div className="block">
-                  <span className="block text-xs text-[rgba(110,92,75,0.82)] dark:text-gray-400 mb-1">API Key</span>
+                  <span className="block text-xs text-[rgba(102,118,136,0.86)] dark:text-gray-400 mb-1">API Key</span>
                   <div className="relative">
                     <input
                       value={draft.apiKey}
@@ -209,7 +209,7 @@ export default function SettingsModal() {
                     <button
                       type="button"
                       onClick={() => setShowApiKey((v) => !v)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[rgba(124,109,97,0.72)] hover:text-[rgb(54,42,33)] transition-colors"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[rgba(102,118,136,0.72)] hover:text-[rgb(29,39,49)] transition-colors"
                       tabIndex={-1}
                     >
                       {showApiKey ? '隐藏' : '显示'}
@@ -218,7 +218,7 @@ export default function SettingsModal() {
                 </div>
 
                 <label className="block">
-                  <span className="block text-xs text-[rgba(110,92,75,0.82)] dark:text-gray-400 mb-1">模型名</span>
+                  <span className="block text-xs text-[rgba(102,118,136,0.86)] dark:text-gray-400 mb-1">MODEL</span>
                   <input
                     value={draft.model}
                     onChange={(e) => setDraft((prev) => ({ ...prev, model: e.target.value }))}
@@ -230,7 +230,7 @@ export default function SettingsModal() {
                   <p className={hintClass}>第三方服务商可能使用不同模型名，这里允许自由填写。</p>
                 </label>
 
-                <label className="flex items-start gap-2 rounded-2xl border border-[rgba(120,95,72,0.12)] bg-[rgba(255,252,247,0.58)] p-3 text-sm text-[rgba(82,61,46,0.86)] dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-300">
+                <label className="flex items-start gap-2 rounded-2xl border border-[rgba(63,86,110,0.12)] bg-[rgba(248,251,255,0.58)] p-3 text-sm text-[rgba(29,39,49,0.86)] dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-300">
                   <input
                     type="checkbox"
                     checked={draft.rememberCustomKey}
@@ -243,7 +243,7 @@ export default function SettingsModal() {
                   />
                   <span>
                     记住在本机
-                    <span className="block text-[11px] leading-5 text-[rgba(124,109,97,0.78)]">
+                    <span className="block text-[11px] leading-5 text-[rgba(102,118,136,0.78)]">
                       勾选后会保存到当前浏览器 localStorage；不勾选则刷新后需要重新填写。
                     </span>
                   </span>
@@ -252,11 +252,11 @@ export default function SettingsModal() {
             </section>
           )}
 
-          <section className="pt-5 border-t border-[rgba(120,95,72,0.12)] dark:border-white/[0.08]">
+          <section className="pt-5 border-t border-[rgba(63,86,110,0.12)] dark:border-white/[0.08]">
             <h4 className={sectionTitleClass}>图片接口</h4>
             <div className="space-y-4">
               <label className="block">
-                <span className="block text-xs text-[rgba(110,92,75,0.82)] dark:text-gray-400 mb-1">API 类型</span>
+                <span className="block text-xs text-[rgba(102,118,136,0.86)] dark:text-gray-400 mb-1">API 类型</span>
                 <Select
                   value={draft.apiMode}
                   onChange={(value) => {
@@ -278,7 +278,7 @@ export default function SettingsModal() {
               </label>
 
               <label className="block">
-                <span className="block text-xs text-[rgba(110,92,75,0.82)] dark:text-gray-400 mb-1">请求超时（秒）</span>
+                <span className="block text-xs text-[rgba(102,118,136,0.86)] dark:text-gray-400 mb-1">请求超时（秒）</span>
                 <input
                   value={timeoutInput}
                   onChange={(e) => setTimeoutInput(e.target.value)}
@@ -293,11 +293,11 @@ export default function SettingsModal() {
             </div>
           </section>
 
-          <section className="pt-5 border-t border-[rgba(120,95,72,0.12)] dark:border-white/[0.08]">
+          <section className="pt-5 border-t border-[rgba(63,86,110,0.12)] dark:border-white/[0.08]">
             <h4 className={sectionTitleClass}>高级开发</h4>
             <div className="space-y-4">
               <label className="block">
-                <span className="block text-xs text-[rgba(110,92,75,0.82)] dark:text-gray-400 mb-1">调用方式</span>
+                <span className="block text-xs text-[rgba(102,118,136,0.86)] dark:text-gray-400 mb-1">调用方式</span>
                 <Select
                   value={draft.transportMode}
                   onChange={(value) => {
@@ -322,7 +322,7 @@ export default function SettingsModal() {
 
               {draft.transportMode === 'bridge' && (
                 <label className="block">
-                  <span className="block text-xs text-[rgba(110,92,75,0.82)] dark:text-gray-400 mb-1">本地桥接 URL</span>
+                  <span className="block text-xs text-[rgba(102,118,136,0.86)] dark:text-gray-400 mb-1">本地桥接 URL</span>
                   <input
                     value={draft.bridgeUrl}
                     onChange={(e) => setDraft((prev) => ({ ...prev, bridgeUrl: e.target.value }))}
@@ -334,7 +334,7 @@ export default function SettingsModal() {
                 </label>
               )}
 
-              <label className="flex items-center justify-between rounded-2xl border border-[rgba(120,95,72,0.12)] bg-[rgba(255,252,247,0.58)] p-3 text-sm text-[rgba(82,61,46,0.86)] dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-300">
+              <label className="flex items-center justify-between rounded-2xl border border-[rgba(63,86,110,0.12)] bg-[rgba(248,251,255,0.58)] p-3 text-sm text-[rgba(29,39,49,0.86)] dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-300">
                 <span>Codex CLI 兼容模式</span>
                 <input
                   type="checkbox"
@@ -349,19 +349,19 @@ export default function SettingsModal() {
             </div>
           </section>
 
-          <section className="pt-5 border-t border-[rgba(120,95,72,0.12)] dark:border-white/[0.08]">
+          <section className="pt-5 border-t border-[rgba(63,86,110,0.12)] dark:border-white/[0.08]">
             <h4 className={sectionTitleClass}>数据管理</h4>
             <div className="space-y-3">
               <div className="flex gap-2">
                 <button
                   onClick={() => exportData()}
-                  className="flex-1 rounded-2xl border border-[rgba(120,95,72,0.12)] bg-[rgba(255,247,239,0.8)] px-4 py-2.5 text-sm text-[rgb(82,61,46)] transition hover:bg-[rgba(255,241,228,0.95)] dark:bg-white/[0.06] dark:text-gray-300 dark:hover:bg-white/[0.1]"
+                  className="flex-1 rounded-2xl border border-[rgba(63,86,110,0.12)] bg-[rgba(239,246,252,0.8)] px-4 py-2.5 text-sm text-[rgb(29,39,49)] transition hover:bg-white dark:bg-white/[0.06] dark:text-gray-300 dark:hover:bg-white/[0.1]"
                 >
                   导出
                 </button>
                 <button
                   onClick={() => importInputRef.current?.click()}
-                  className="flex-1 rounded-2xl border border-[rgba(120,95,72,0.12)] bg-[rgba(255,247,239,0.8)] px-4 py-2.5 text-sm text-[rgb(82,61,46)] transition hover:bg-[rgba(255,241,228,0.95)] dark:bg-white/[0.06] dark:text-gray-300 dark:hover:bg-white/[0.1]"
+                  className="flex-1 rounded-2xl border border-[rgba(63,86,110,0.12)] bg-[rgba(239,246,252,0.8)] px-4 py-2.5 text-sm text-[rgb(29,39,49)] transition hover:bg-white dark:bg-white/[0.06] dark:text-gray-300 dark:hover:bg-white/[0.1]"
                 >
                   导入
                 </button>

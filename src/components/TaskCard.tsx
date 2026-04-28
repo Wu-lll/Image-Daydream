@@ -168,7 +168,7 @@ export default function TaskCard({
   const swipeBgClass = showSwipeAction
     ? swipeStartedSelected
       ? 'bg-gray-500 dark:bg-gray-600'
-      : 'bg-blue-500'
+      : 'bg-[rgb(93,126,163)]'
     : 'bg-gray-200 dark:bg-gray-700'
 
   return (
@@ -195,15 +195,15 @@ export default function TaskCard({
           !isSwiping ? 'transition-[box-shadow,border-color,background-color,transform]' : 'transition-[box-shadow,border-color,background-color]'
         } ${
           task.status === 'running'
-            ? 'border-[rgba(143,106,77,0.45)] generating'
+            ? 'border-[rgba(93,126,163,0.45)] generating'
             : isSelected
-            ? 'border-[rgb(143,106,77)] shadow-md ring-2 ring-[rgba(143,106,77,0.22)]'
-            : 'border-[rgba(120,95,72,0.12)] dark:border-white/[0.08] hover:border-[rgba(143,106,77,0.26)] dark:hover:border-white/[0.18]'
+            ? 'border-[rgb(93,126,163)] shadow-md ring-2 ring-[rgba(93,126,163,0.22)]'
+            : 'border-[rgba(63,86,110,0.14)] dark:border-white/[0.08] hover:border-[rgba(93,126,163,0.28)] dark:hover:border-white/[0.18]'
         }`}
         style={{
           transform: swipeOffset ? `translateX(${swipeOffset}px)` : undefined,
-          background: 'linear-gradient(180deg, rgba(255,251,246,0.96) 0%, rgba(250,243,236,0.94) 100%)',
-          boxShadow: isSelected ? undefined : '0 18px 40px rgba(90, 66, 43, 0.06)',
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(242,247,252,0.94) 100%)',
+          boxShadow: isSelected ? undefined : '0 18px 40px rgba(42, 59, 77, 0.07)',
         }}
         onClick={(e) => {
           if (Date.now() < suppressClickUntilRef.current) {
@@ -220,7 +220,7 @@ export default function TaskCard({
       >
         {/* 选中时的角标 */}
       {isSelected && (
-        <div className="absolute top-2 right-2 z-10 w-5 h-5 rounded-full flex items-center justify-center shadow-sm bg-[rgb(143,106,77)]">
+        <div className="absolute top-2 right-2 z-10 w-5 h-5 rounded-full flex items-center justify-center shadow-sm bg-[rgb(93,126,163)]">
           <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
           </svg>
@@ -228,11 +228,11 @@ export default function TaskCard({
       )}
       <div className="flex h-40">
         {/* 左侧图片区域 */}
-        <div className="w-40 min-w-[10rem] h-full relative flex items-center justify-center overflow-hidden flex-shrink-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.92),_rgba(236,226,214,0.82)_72%)] dark:bg-black/20">
+        <div className="w-40 min-w-[10rem] h-full relative flex items-center justify-center overflow-hidden flex-shrink-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.94),_rgba(231,239,247,0.86)_72%)] dark:bg-black/20">
           {task.status === 'running' && (
             <div className="flex flex-col items-center gap-2">
               <svg
-                className="w-8 h-8 text-[rgb(143,106,77)] animate-spin"
+                className="w-8 h-8 text-[rgb(93,126,163)] animate-spin"
                 fill="none"
                 viewBox="0 0 24 24"
               >
@@ -250,7 +250,7 @@ export default function TaskCard({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                 />
               </svg>
-              <span className="text-xs text-[rgba(124,109,97,0.88)] dark:text-gray-500">生成中...</span>
+              <span className="text-xs text-[rgba(102,118,136,0.88)] dark:text-gray-500">正在生成，请稍等</span>
             </div>
           )}
           {task.status === 'error' && (
@@ -269,7 +269,7 @@ export default function TaskCard({
                 />
               </svg>
               <span className="text-xs text-red-400 text-center leading-tight">
-                失败
+                生成失败，请稍后重试
               </span>
             </div>
           )}

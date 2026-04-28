@@ -8,30 +8,31 @@ export default function Header() {
   const [showHelp, setShowHelp] = useState(false)
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[rgba(120,95,72,0.12)] bg-[rgba(248,243,236,0.88)] backdrop-blur-xl dark:bg-gray-950/80 dark:border-white/[0.08]">
+    <header className="sticky top-0 z-40 border-b border-[rgba(63,86,110,0.12)] bg-[rgba(245,248,251,0.88)] backdrop-blur-xl dark:bg-gray-950/80 dark:border-white/[0.08]">
       <div className="max-w-7xl mx-auto px-4 min-h-16 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(143,106,77,0.14)] bg-[rgba(255,251,246,0.9)] text-[rgb(143,106,77)] shadow-[0_8px_24px_rgba(93,66,43,0.08)]">
+          <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-xl border border-[rgba(29,39,49,0.16)] bg-[rgb(29,39,49)] text-white shadow-[0_10px_26px_rgba(42,59,77,0.14)]">
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M4 20c4.5-1.2 8.2-4.1 11-8.8l2.8-4.8a1.8 1.8 0 0 1 2.5-.6 1.8 1.8 0 0 1 .6 2.5l-2.8 4.8C15.3 17.8 10.6 20.1 4 20z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M13.5 7.8l2.8 1.6" />
             </svg>
           </div>
           <div className="flex flex-col gap-0.5">
-            <div className="text-[11px] uppercase tracking-[0.28em] text-[rgba(120,95,72,0.66)]">Private Image Atelier</div>
-            <h1 className="text-lg font-semibold tracking-tight">
-            <span className="text-[rgb(54,42,33)] dark:text-gray-100">
+            <h1 className="[font-family:var(--font-serif-display)] text-[1.65rem] leading-none font-medium tracking-normal">
+            <span className="text-[rgb(29,39,49)] dark:text-gray-100">
               Image Daydream
             </span>
           </h1>
-            <div className="flex flex-wrap items-center gap-2 text-[11px] text-[rgba(110,92,75,0.78)]">
-              <span className="rounded-full border border-[rgba(120,95,72,0.12)] bg-[rgba(255,247,239,0.88)] px-2 py-0.5">
-                {settings.credentialMode === 'site' ? (settings.providerLine === 'line2' ? '线路 2' : '线路 1') : '我的 API'}
+            <div className="text-[11px] text-[rgba(102,118,136,0.72)]">为灵感留一张安静的纸</div>
+            <div className="flex flex-wrap items-center gap-2 text-[11px] text-[rgba(102,118,136,0.78)]">
+              <span className="rounded-full border border-[rgba(63,86,110,0.12)] bg-[rgba(248,251,255,0.88)] px-2 py-0.5">
+                {settings.credentialMode === 'site' ? (settings.providerLine === 'line2' ? '线路 2' : '线路 1') : '自定义 API'}
               </span>
-              <span className="rounded-full border border-[rgba(120,95,72,0.12)] bg-[rgba(255,247,239,0.88)] px-2 py-0.5">
+              <span className="rounded-full border border-[rgba(63,86,110,0.12)] bg-[rgba(248,251,255,0.88)] px-2 py-0.5">
                 {settings.transportMode === 'server' ? '云端代理' : settings.transportMode === 'bridge' ? '本地桥接' : '浏览器直连'}
               </span>
-              <span className="rounded-full border border-[rgba(120,95,72,0.12)] bg-[rgba(255,247,239,0.88)] px-2 py-0.5">
-                {settings.apiMode === 'responses' ? 'Responses API' : 'Images API'}
+              <span className="rounded-full border border-[rgba(63,86,110,0.12)] bg-[rgba(248,251,255,0.88)] px-2 py-0.5">
+                {settings.apiMode === 'responses' ? '响应接口' : '图片接口'}
               </span>
             </div>
           </div>
@@ -39,11 +40,11 @@ export default function Header() {
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShowHelp(true)}
-            className="p-2 rounded-xl border border-transparent hover:border-[rgba(120,95,72,0.1)] hover:bg-[rgba(255,247,239,0.9)] dark:hover:bg-gray-900 transition-colors"
+            className="p-2 rounded-xl border border-transparent hover:border-[rgba(63,86,110,0.12)] hover:bg-[rgba(248,251,255,0.9)] dark:hover:bg-gray-900 transition-colors"
             title="操作指南"
           >
             <svg
-              className="w-5 h-5 text-[rgba(110,92,75,0.82)] dark:text-gray-400"
+              className="w-5 h-5 text-[rgba(102,118,136,0.86)] dark:text-gray-400"
               fill="none"
               stroke="currentColor"
               strokeWidth={2}
@@ -58,11 +59,11 @@ export default function Header() {
           </button>
           <button
             onClick={() => setShowSettings(true)}
-            className="p-2 rounded-xl border border-transparent hover:border-[rgba(120,95,72,0.1)] hover:bg-[rgba(255,247,239,0.9)] dark:hover:bg-gray-900 transition-colors"
+            className="p-2 rounded-xl border border-transparent hover:border-[rgba(63,86,110,0.12)] hover:bg-[rgba(248,251,255,0.9)] dark:hover:bg-gray-900 transition-colors"
             title="设置"
           >
             <svg
-              className="w-5 h-5 text-[rgba(110,92,75,0.82)] dark:text-gray-400"
+              className="w-5 h-5 text-[rgba(102,118,136,0.86)] dark:text-gray-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

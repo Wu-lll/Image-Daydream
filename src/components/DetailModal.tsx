@@ -132,6 +132,12 @@ export default function DetailModal() {
     return `${seconds.toFixed(1)}s`
   }
 
+  const formatProviderLine = (line?: string) => {
+    if (line === 'line1') return '线路 1'
+    if (line === 'line2') return '线路 2'
+    return '未知'
+  }
+
   const handleReuse = () => {
     reuseConfig(task)
     setDetailTaskId(null)
@@ -295,10 +301,13 @@ export default function DetailModal() {
             </>
           )}
           {task.status === 'running' && (
-            <svg className="w-10 h-10 text-blue-400 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
+            <div className="flex flex-col items-center gap-3 text-center">
+              <svg className="w-10 h-10 text-[rgb(93,126,163)] animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <p className="text-sm text-[rgba(102,118,136,0.86)]">正在生成，请稍等</p>
+            </div>
           )}
           {task.status === 'error' && (
             <div className="w-full max-w-md px-4 text-center">
@@ -313,7 +322,7 @@ export default function DetailModal() {
                   WebkitLineClamp: 4,
                 }}
               >
-                {task.error || '生成失败'}
+                生成失败，请稍后重试
               </p>
               <button
                 type="button"
@@ -464,7 +473,7 @@ export default function DetailModal() {
 
             {task.proxyRuntime && (
               <div className="mb-4 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-white/[0.03] dark:text-gray-400">
-                <div>云端代理线路：{task.proxyRuntime.upstreamLine || '未知'}</div>
+                <div>云端代理线路：{formatProviderLine(task.proxyRuntime.upstreamLine)}</div>
                 {formatProxyDuration(task.proxyRuntime.upstreamElapsedMs) && (
                   <div>上游实际耗时：{formatProxyDuration(task.proxyRuntime.upstreamElapsedMs)}</div>
                 )}

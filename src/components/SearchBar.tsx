@@ -16,8 +16,8 @@ export default function SearchBar() {
           onClick={() => setFilterFavorite(!filterFavorite)}
           className={`p-2.5 rounded-xl border transition-all ${
             filterFavorite
-              ? 'border-[rgba(199,162,124,0.45)] bg-[rgba(255,244,224,0.82)] dark:bg-yellow-500/10 text-[rgb(166,120,73)]'
-              : 'border-[rgba(120,95,72,0.12)] dark:border-white/[0.08] bg-[rgba(255,251,246,0.84)] dark:bg-gray-900 text-[rgba(124,109,97,0.82)] hover:bg-[rgba(255,246,237,0.95)] dark:hover:bg-white/[0.06]'
+              ? 'border-[rgba(93,126,163,0.45)] bg-[rgba(225,235,246,0.82)] dark:bg-blue-500/10 text-[rgb(63,92,122)]'
+              : 'border-[rgba(63,86,110,0.12)] dark:border-white/[0.08] bg-[rgba(248,251,255,0.84)] dark:bg-gray-900 text-[rgba(102,118,136,0.86)] hover:bg-white dark:hover:bg-white/[0.06]'
           }`}
           title={filterFavorite ? '取消只看收藏' : '只看收藏'}
         >
@@ -35,13 +35,13 @@ export default function SearchBar() {
               { label: '生成中', value: 'running' },
               { label: '失败', value: 'error' },
             ]}
-            className="px-3 py-2.5 rounded-xl border border-[rgba(120,95,72,0.12)] dark:border-white/[0.08] bg-[rgba(255,251,246,0.84)] dark:bg-gray-900 hover:bg-[rgba(255,246,237,0.95)] dark:hover:bg-white/[0.06] text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(143,106,77,0.16)] focus:border-[rgba(143,106,77,0.38)] transition"
+            className="px-3 py-2.5 rounded-xl border border-[rgba(63,86,110,0.12)] dark:border-white/[0.08] bg-[rgba(248,251,255,0.84)] dark:bg-gray-900 hover:bg-white dark:hover:bg-white/[0.06] text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(93,126,163,0.16)] focus:border-[rgba(93,126,163,0.38)] transition"
           />
         </div>
       </div>
       <div className="relative flex-1 z-10">
         <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(124,109,97,0.7)] dark:text-gray-500"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(102,118,136,0.72)] dark:text-gray-500"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -58,7 +58,7 @@ export default function SearchBar() {
           onChange={(e) => setSearchQuery(e.target.value)}
           type="text"
           placeholder="搜索提示词、参数..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[rgba(120,95,72,0.12)] dark:border-white/[0.08] bg-[rgba(255,251,246,0.84)] dark:bg-gray-900 text-sm text-[rgb(54,42,33)] dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[rgba(143,106,77,0.16)] focus:border-[rgba(143,106,77,0.38)] transition"
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[rgba(63,86,110,0.12)] dark:border-white/[0.08] bg-[rgba(248,251,255,0.84)] dark:bg-gray-900 text-sm text-[rgb(29,39,49)] dark:text-gray-100 placeholder:text-[rgba(102,118,136,0.58)] focus:outline-none focus:ring-2 focus:ring-[rgba(93,126,163,0.16)] focus:border-[rgba(93,126,163,0.38)] transition"
         />
       </div>
     </div>

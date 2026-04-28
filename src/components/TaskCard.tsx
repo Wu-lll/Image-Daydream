@@ -191,7 +191,7 @@ export default function TaskCard({
       </div>
 
       <div
-        className={`relative bg-white dark:bg-gray-900 rounded-xl border overflow-hidden cursor-pointer duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_56px_rgba(42,59,77,0.13)] dark:hover:bg-gray-800/80 ${
+        className={`art-card relative bg-white dark:bg-gray-900 rounded-xl border overflow-hidden cursor-pointer duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_56px_rgba(42,59,77,0.13)] dark:hover:bg-gray-800/80 ${
           !isSwiping ? 'transition-[box-shadow,border-color,background-color,transform]' : 'transition-[box-shadow,border-color,background-color]'
         } ${
           task.status === 'running'

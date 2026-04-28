@@ -10,7 +10,7 @@ export default function SearchBar() {
   const setFilterFavorite = useStore((s) => s.setFilterFavorite)
 
   return (
-    <div className="mt-6 mb-4 flex flex-col gap-3 rounded-[1.6rem] border border-[rgba(63,86,110,0.12)] bg-[rgba(248,251,255,0.58)] p-2 shadow-[0_18px_48px_rgba(42,59,77,0.06)] backdrop-blur-xl sm:flex-row">
+    <div className="gallery-toolbar mt-6 mb-4 flex flex-col gap-3 rounded-[1.6rem] border border-[rgba(63,86,110,0.12)] bg-[rgba(248,251,255,0.58)] p-2 shadow-[0_18px_48px_rgba(42,59,77,0.06)] backdrop-blur-xl sm:flex-row">
       <div className="flex gap-2 flex-shrink-0 z-20">
         <button
           onClick={() => setFilterFavorite(!filterFavorite)}
@@ -58,7 +58,7 @@ export default function SearchBar() {
           onChange={(e) => setSearchQuery(e.target.value)}
           type="text"
           placeholder="搜索提示词、参数..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[rgba(63,86,110,0.12)] dark:border-white/[0.08] bg-white/55 dark:bg-gray-900 text-sm text-[rgb(29,39,49)] dark:text-gray-100 placeholder:text-[rgba(102,118,136,0.58)] focus:outline-none focus:ring-2 focus:ring-[rgba(93,126,163,0.16)] focus:border-[rgba(93,126,163,0.38)] transition"
+          className="search-field w-full pl-10 pr-4 py-2.5 rounded-xl border border-[rgba(63,86,110,0.12)] dark:border-white/[0.08] bg-white/55 dark:bg-gray-900 text-sm text-[rgb(29,39,49)] dark:text-gray-100 placeholder:text-[rgba(102,118,136,0.58)] focus:outline-none focus:ring-2 focus:ring-[rgba(93,126,163,0.16)] focus:border-[rgba(93,126,163,0.38)] transition"
         />
       </div>
     </div>

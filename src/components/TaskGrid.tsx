@@ -59,9 +59,9 @@ export default function TaskGrid() {
   }
 
   const renderGridHeader = () => (
-    <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className="gallery-heading mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h2 className="[font-family:var(--font-serif-display)] text-2xl font-medium tracking-normal text-[rgb(29,39,49)]">
+        <h2 className="gallery-title [font-family:var(--font-serif-display)] text-2xl font-medium tracking-normal text-[rgb(29,39,49)]">
           作品墙
         </h2>
         <p className="mt-1 text-xs text-[rgba(102,118,136,0.78)]">
@@ -71,21 +71,21 @@ export default function TaskGrid() {
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2 text-[11px] text-[rgba(63,86,110,0.76)]">
-        <span className="rounded-full border border-[rgba(63,86,110,0.12)] bg-[rgba(248,251,255,0.74)] px-2.5 py-1 shadow-[0_8px_22px_rgba(42,59,77,0.05)]">
+        <span className="stat-pill rounded-full border border-[rgba(63,86,110,0.12)] bg-[rgba(248,251,255,0.74)] px-2.5 py-1 shadow-[0_8px_22px_rgba(42,59,77,0.05)]">
           已完成 {stats.done}
         </span>
         {stats.running > 0 && (
-          <span className="rounded-full border border-[rgba(93,126,163,0.22)] bg-[rgba(225,235,246,0.78)] px-2.5 py-1 text-[rgb(63,92,122)] shadow-[0_8px_22px_rgba(42,59,77,0.05)]">
+          <span className="stat-pill rounded-full border border-[rgba(93,126,163,0.22)] bg-[rgba(225,235,246,0.78)] px-2.5 py-1 text-[rgb(63,92,122)] shadow-[0_8px_22px_rgba(42,59,77,0.05)]">
             生成中 {stats.running}
           </span>
         )}
         {stats.error > 0 && (
-          <span className="rounded-full border border-[rgba(180,93,90,0.2)] bg-[rgba(180,93,90,0.08)] px-2.5 py-1 text-[rgb(150,75,72)] shadow-[0_8px_22px_rgba(42,59,77,0.05)]">
+          <span className="stat-pill rounded-full border border-[rgba(180,93,90,0.2)] bg-[rgba(180,93,90,0.08)] px-2.5 py-1 text-[rgb(150,75,72)] shadow-[0_8px_22px_rgba(42,59,77,0.05)]">
             失败 {stats.error}
           </span>
         )}
         {selectedTaskIds.length > 0 && (
-          <span className="rounded-full border border-[rgba(47,57,67,0.16)] bg-[rgba(47,57,67,0.86)] px-2.5 py-1 text-white shadow-[0_8px_22px_rgba(42,59,77,0.1)]">
+          <span className="stat-pill rounded-full border border-[rgba(47,57,67,0.16)] bg-[rgba(47,57,67,0.86)] px-2.5 py-1 text-white shadow-[0_8px_22px_rgba(42,59,77,0.1)]">
             已选 {selectedTaskIds.length}
           </span>
         )}
@@ -208,7 +208,7 @@ export default function TaskGrid() {
     return (
       <>
         {renderGridHeader()}
-        <div className="rounded-[2rem] border border-dashed border-[rgba(63,86,110,0.2)] bg-[rgba(248,251,255,0.62)] py-24 text-center text-[rgba(102,118,136,0.82)] shadow-[0_18px_48px_rgba(42,59,77,0.07)] dark:text-gray-500">
+        <div className="empty-gallery rounded-[2rem] border border-dashed border-[rgba(63,86,110,0.2)] bg-[rgba(248,251,255,0.62)] py-24 text-center text-[rgba(102,118,136,0.82)] shadow-[0_18px_48px_rgba(42,59,77,0.07)] dark:text-gray-500">
           {searchQuery || filterFavorite ? (
             <p className="text-sm">没有找到匹配的记录</p>
           ) : (

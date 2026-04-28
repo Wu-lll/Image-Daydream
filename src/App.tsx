@@ -101,7 +101,7 @@ export default function App() {
   return (
     <AuthGate>
       <Header />
-      <main className="max-w-7xl mx-auto px-4 pb-56">
+      <main className="daydream-main relative mx-auto max-w-7xl px-4 pb-56">
         <SearchBar />
         <TaskGrid />
       </main>

@@ -721,7 +721,7 @@ export default function InputBar() {
             </div>
           </div>
         )}
-        <div ref={cardRef} className="rounded-2xl sm:rounded-3xl p-3 sm:p-4 bg-[rgba(248,251,255,0.84)] dark:bg-gray-900/70 backdrop-blur-2xl border border-[rgba(63,86,110,0.18)] dark:border-white/[0.08] shadow-[0_24px_56px_rgba(42,59,77,0.14)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] ring-1 ring-white/50 dark:ring-white/10">
+        <div ref={cardRef} className="composer-panel rounded-2xl sm:rounded-3xl p-3 sm:p-4 bg-[rgba(248,251,255,0.84)] dark:bg-gray-900/70 backdrop-blur-2xl border border-[rgba(63,86,110,0.18)] dark:border-white/[0.08] shadow-[0_24px_56px_rgba(42,59,77,0.14)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] ring-1 ring-white/50 dark:ring-white/10">
           {/* 移动端拖动条 */}
           <div
             ref={handleRef}
@@ -757,7 +757,7 @@ export default function InputBar() {
             onKeyDown={handleKeyDown}
             rows={1}
             placeholder="描述你想生成的画面"
-            className="w-full px-4 py-3 rounded-2xl border border-[rgba(63,86,110,0.16)] dark:border-white/[0.08] bg-[rgba(255,255,255,0.72)] dark:bg-white/[0.03] text-sm text-[rgb(29,39,49)] dark:text-gray-100 placeholder:text-[rgba(102,118,136,0.62)] focus:outline-none focus:border-[rgba(93,126,163,0.42)] focus:shadow-[0_0_0_4px_rgba(93,126,163,0.12)] leading-relaxed resize-none shadow-sm transition-[border-color,box-shadow,background-color] duration-200"
+            className="prompt-field w-full px-4 py-3 rounded-2xl border border-[rgba(63,86,110,0.16)] dark:border-white/[0.08] bg-[rgba(255,255,255,0.72)] dark:bg-white/[0.03] text-sm text-[rgb(29,39,49)] dark:text-gray-100 placeholder:text-[rgba(102,118,136,0.62)] focus:outline-none focus:border-[rgba(93,126,163,0.42)] focus:shadow-[0_0_0_4px_rgba(93,126,163,0.12)] leading-relaxed resize-none shadow-sm transition-[border-color,box-shadow,background-color] duration-200"
           />
 
           {/* 参数 + 按钮 */}
@@ -778,7 +778,7 @@ export default function InputBar() {
                     className={`p-2.5 rounded-xl transition-all shadow-sm ${
                       atImageLimit
                         ? 'bg-[rgba(218,227,237,0.48)] dark:bg-white/[0.04] text-[rgba(102,118,136,0.42)] dark:text-gray-500 cursor-not-allowed'
-                        : 'bg-[rgba(239,246,252,0.92)] dark:bg-white/[0.06] hover:bg-white dark:hover:bg-white/[0.1] text-[rgb(63,92,122)] dark:text-gray-300 hover:shadow'
+                        : 'secondary-action bg-[rgba(239,246,252,0.92)] dark:bg-white/[0.06] hover:bg-white dark:hover:bg-white/[0.1] text-[rgb(63,92,122)] dark:text-gray-300 hover:shadow'
                     }`}
                     title={atImageLimit ? `已达上限 ${API_MAX_IMAGES} 张` : '添加参考图'}
                   >
@@ -799,7 +799,7 @@ export default function InputBar() {
                     className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm hover:shadow ${
                       !hasUsableCredentials
                         ? 'bg-[rgba(138,152,168,0.82)] dark:bg-white/[0.06] text-white cursor-pointer'
-                        : 'bg-[rgb(47,57,67)] text-white hover:bg-[rgb(63,92,122)] disabled:bg-[rgba(138,152,168,0.72)] dark:disabled:bg-white/[0.04] disabled:opacity-50 disabled:cursor-not-allowed'
+                        : 'primary-action bg-[rgb(47,57,67)] text-white hover:bg-[rgb(63,92,122)] disabled:bg-[rgba(138,152,168,0.72)] dark:disabled:bg-white/[0.04] disabled:opacity-50 disabled:cursor-not-allowed'
                     }`}
                     title={hasUsableCredentials ? '生成 (Ctrl+Enter)' : '请先配置 API'}
                   >
@@ -833,7 +833,7 @@ export default function InputBar() {
                     className={`p-2.5 rounded-xl transition-all shadow-sm flex-shrink-0 ${
                       atImageLimit
                         ? 'bg-[rgba(218,227,237,0.48)] dark:bg-white/[0.04] text-[rgba(102,118,136,0.42)] dark:text-gray-500 cursor-not-allowed'
-                        : 'bg-[rgba(239,246,252,0.92)] dark:bg-white/[0.06] hover:bg-white dark:hover:bg-white/[0.1] text-[rgb(63,92,122)] dark:text-gray-300'
+                        : 'secondary-action bg-[rgba(239,246,252,0.92)] dark:bg-white/[0.06] hover:bg-white dark:hover:bg-white/[0.1] text-[rgb(63,92,122)] dark:text-gray-300'
                     }`}
                     title={atImageLimit ? `已达上限 ${API_MAX_IMAGES} 张` : '添加参考图'}
                   >
@@ -854,7 +854,7 @@ export default function InputBar() {
                     className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm ${
                       !hasUsableCredentials
                         ? 'bg-[rgba(138,152,168,0.82)] dark:bg-white/[0.06] text-white cursor-pointer'
-                        : 'bg-[rgb(47,57,67)] text-white hover:bg-[rgb(63,92,122)] disabled:bg-[rgba(138,152,168,0.72)] dark:disabled:bg-white/[0.04] disabled:opacity-50 disabled:cursor-not-allowed'
+                        : 'primary-action bg-[rgb(47,57,67)] text-white hover:bg-[rgb(63,92,122)] disabled:bg-[rgba(138,152,168,0.72)] dark:disabled:bg-white/[0.04] disabled:opacity-50 disabled:cursor-not-allowed'
                     }`}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -876,7 +876,7 @@ export default function InputBar() {
             onChange={handleFileUpload}
           />
         </div>
-        <div className="pt-2 text-center [font-family:var(--font-serif-display)] text-xs italic text-[rgba(63,86,110,0.52)]">
+        <div className="bottom-manifesto pt-2 text-center [font-family:var(--font-serif-display)] text-[13px] italic tracking-[0.08em] text-[rgba(63,86,110,0.56)]">
           for inspiration, for a quiet sheet of paper
         </div>
       </div>

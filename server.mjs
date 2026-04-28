@@ -14,6 +14,8 @@ const SESSION_MAX_AGE_MS = Number(process.env.SESSION_MAX_AGE_DAYS || 30) * 24 *
 const SESSION_SECRET = process.env.SESSION_SECRET || 'dev-only-change-me'
 const ACCESS_CODE = process.env.ACCESS_CODE || ''
 const MAX_BODY_BYTES = Number(process.env.MAX_BODY_BYTES || 25 * 1024 * 1024)
+const UPSTREAM_TIMEOUT_MS = Number(process.env.UPSTREAM_TIMEOUT_MS || 65000)
+const SITE_FAILOVER_ENABLED = String(process.env.SITE_FAILOVER_ENABLED || 'true').toLowerCase() !== 'false'
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -87,6 +89,10 @@ function providerConfig(line) {
     apiKey: process.env[`${prefix}_API_KEY`] || process.env[`${fallbackPrefix}_API_KEY`] || '',
     model: process.env[`${prefix}_MODEL`] || process.env.DEFAULT_IMAGE_MODEL || 'gpt-image-2',
   }
+}
+
+function otherLine(line) {
+  return line === 'line2' ? 'line1' : 'line2'
 }
 
 function sign(value) {
@@ -229,7 +235,7 @@ function makeUpstreamUrl(baseUrl, apiPath) {
   return `${normalized}/${cleanPath}`
 }
 
-function pickCredentials(req) {
+function buildCredentialCandidates(req) {
   const credentialMode = String(req.headers['x-image-credential-mode'] || 'site').toLowerCase()
   if (credentialMode === 'custom') {
     const baseUrl = normalizeBaseUrl(req.headers['x-openai-base-url'])
@@ -237,15 +243,47 @@ function pickCredentials(req) {
     if (!baseUrl || !apiKey) {
       throw new Error('请先填写自己的 Base URL 和 API Key。')
     }
-    return { baseUrl, apiKey }
+    return [{
+      mode: 'custom',
+      logicalLine: 'custom',
+      label: '我的 API',
+      baseUrl,
+      apiKey,
+      model: process.env.DEFAULT_IMAGE_MODEL || 'gpt-image-2',
+    }]
   }
 
   const requestedLine = req.headers['x-image-line'] === 'line2' ? 'line2' : 'line1'
-  const provider = providerConfig(requestedLine)
-  if (!provider.apiKey) {
-    throw new Error(`${provider.label} 尚未在服务端配置 API Key。`)
+  const primary = providerConfig(requestedLine)
+  if (!primary.apiKey) {
+    throw new Error(`${primary.label} 尚未在服务端配置 API Key。`)
   }
-  return provider
+
+  const candidates = [{
+    mode: 'site',
+    logicalLine: requestedLine,
+    ...primary,
+  }]
+
+  if (!SITE_FAILOVER_ENABLED) return candidates
+
+  const fallbackLine = otherLine(requestedLine)
+  const fallback = providerConfig(fallbackLine)
+  const isDistinct = fallback.apiKey && (
+    fallback.baseUrl !== primary.baseUrl ||
+    fallback.apiKey !== primary.apiKey ||
+    fallback.model !== primary.model
+  )
+
+  if (isDistinct) {
+    candidates.push({
+      mode: 'site',
+      logicalLine: fallbackLine,
+      ...fallback,
+    })
+  }
+
+  return candidates
 }
 
 function sanitizeHeaders(headers) {
@@ -263,6 +301,26 @@ function imageMimeFromFormat(format) {
   if (format === 'jpeg' || format === 'jpg') return 'image/jpeg'
   if (format === 'webp') return 'image/webp'
   return 'image/png'
+}
+
+function payloadNeedsNormalization(apiPath, payload) {
+  if (!payload || typeof payload !== 'object') return false
+
+  if (apiPath.startsWith('/api/openai/v1/images/')) {
+    return Array.isArray(payload.data) && payload.data.some(
+      (item) => item && typeof item === 'object' && typeof item.url === 'string' && /^https?:\/\//i.test(item.url),
+    )
+  }
+
+  if (apiPath === '/api/openai/v1/responses') {
+    return Array.isArray(payload.output) && payload.output.some((item) => {
+      if (!item || typeof item !== 'object' || item.type !== 'image_generation_call') return false
+      const result = item.result
+      return typeof result?.url === 'string' && /^https?:\/\//i.test(result.url)
+    })
+  }
+
+  return false
 }
 
 function normalizeBase64Image(value, fallbackMime) {
@@ -297,6 +355,121 @@ async function normalizeImageJson(payload, fallbackMime) {
   return payload
 }
 
+async function normalizeResponsePayload(apiPath, payload, fallbackMime) {
+  if (apiPath.startsWith('/api/openai/v1/images/')) {
+    return normalizeImageJson(payload, fallbackMime)
+  }
+
+  return payload
+}
+
+async function callUpstream(candidate, req, body, contentType, index) {
+  const endpointUrl = makeUpstreamUrl(candidate.baseUrl, req.url)
+  let requestBody = body
+  if (candidate.model && contentType.includes('application/json') && body.length) {
+    try {
+      const json = JSON.parse(body.toString('utf8'))
+      if (json && typeof json === 'object') {
+        json.model = candidate.model
+        requestBody = Buffer.from(JSON.stringify(json))
+      }
+    } catch {
+      requestBody = body
+    }
+  }
+
+  const upstreamHeaders = {
+    ...sanitizeHeaders(req.headers),
+    Authorization: `Bearer ${candidate.apiKey}`,
+  }
+
+  if (requestBody.length && !upstreamHeaders['content-type'] && contentType) {
+    upstreamHeaders['content-type'] = contentType
+  }
+
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(new Error(`上游请求超时（>${UPSTREAM_TIMEOUT_MS}ms）`)), UPSTREAM_TIMEOUT_MS)
+  const startedAt = Date.now()
+
+  try {
+    const upstream = await fetch(endpointUrl, {
+      method: req.method,
+      headers: upstreamHeaders,
+      body: ['GET', 'HEAD'].includes(req.method || 'GET') ? undefined : requestBody,
+      duplex: 'half',
+      signal: controller.signal,
+    })
+
+    const elapsedMs = Date.now() - startedAt
+    const responseContentType = upstream.headers.get('content-type') || 'application/json; charset=utf-8'
+
+    if (!responseContentType.includes('application/json')) {
+      const rawBody = Buffer.from(await upstream.arrayBuffer())
+      return {
+        ok: upstream.ok,
+        usable: upstream.ok,
+        status: upstream.status,
+        text: rawBody.toString('utf8'),
+        contentType: responseContentType,
+        payload: null,
+        elapsedMs,
+        normalized: false,
+        upstreamIndex: index,
+        upstreamOrigin: new URL(candidate.baseUrl).origin,
+        logicalLine: candidate.logicalLine,
+        label: candidate.label,
+      }
+    }
+
+    const text = await upstream.text()
+    let payload = null
+    try {
+      payload = text ? JSON.parse(text) : null
+    } catch {
+      return {
+        ok: upstream.ok,
+        usable: upstream.ok,
+        status: upstream.status,
+        text,
+        contentType: responseContentType,
+        payload: null,
+        elapsedMs,
+        normalized: false,
+        upstreamIndex: index,
+        upstreamOrigin: new URL(candidate.baseUrl).origin,
+        logicalLine: candidate.logicalLine,
+        label: candidate.label,
+      }
+    }
+
+    let responseText = text
+    let normalized = false
+    if (upstream.ok && payloadNeedsNormalization(req.url, payload)) {
+      normalized = true
+      const normalizedPayload = await normalizeResponsePayload(req.url, payload, imageMimeFromFormat(payload?.output_format))
+      payload = normalizedPayload
+      responseText = JSON.stringify(normalizedPayload)
+    }
+
+    return {
+      ok: upstream.ok,
+      usable: upstream.ok && hasUsableImagePayload(req.url, payload),
+      status: upstream.status,
+      text: responseText,
+      contentType: responseContentType,
+      payload,
+      elapsedMs,
+      normalized,
+      upstreamIndex: index,
+      upstreamOrigin: new URL(candidate.baseUrl).origin,
+      logicalLine: candidate.logicalLine,
+      label: candidate.label,
+    }
+  } finally {
+    clearTimeout(timeoutId)
+  }
+}
+
 async function handleProxy(req, res, url) {
   const session = getValidSession(req, res)
   if (!session) {
@@ -304,74 +477,43 @@ async function handleProxy(req, res, url) {
     return
   }
 
-  let credentials
+  let candidates
   try {
-    credentials = pickCredentials(req)
+    candidates = buildCredentialCandidates(req)
   } catch (error) {
     sendJson(res, 400, { error: { message: error.message } })
     return
   }
 
   let body = await readBody(req)
-  if (credentials.model && String(req.headers['content-type'] || '').includes('application/json') && body.length) {
-    try {
-      const json = JSON.parse(body.toString('utf8'))
-      if (json && typeof json === 'object') {
-        json.model = credentials.model
-        body = Buffer.from(JSON.stringify(json))
-        req.headers['content-type'] = 'application/json'
-      }
-    } catch {
-      // Keep the original body; upstream will return the parse error if it is invalid JSON.
-    }
-  }
-  const upstreamUrl = makeUpstreamUrl(credentials.baseUrl, url.pathname)
-  const headers = {
-    ...sanitizeHeaders(req.headers),
-    Authorization: `Bearer ${credentials.apiKey}`,
-  }
-
-  if (body.length && !headers['content-type'] && req.headers['content-type']) {
-    headers['content-type'] = req.headers['content-type']
-  }
+  const contentType = typeof req.headers['content-type'] === 'string' ? req.headers['content-type'] : ''
+  let lastResult = null
 
   try {
-    const upstream = await fetch(upstreamUrl, {
-      method: req.method,
-      headers,
-      body: ['GET', 'HEAD'].includes(req.method || 'GET') ? undefined : body,
-      duplex: 'half',
-    })
+    for (const [index, candidate] of candidates.entries()) {
+      const result = await callUpstream(candidate, req, body, contentType, index)
+      lastResult = result
+      if (result.usable) {
+        res.setHeader('Cache-Control', 'no-store')
+        res.setHeader('X-Proxy-Upstream-Index', String(result.upstreamIndex))
+        res.setHeader('X-Proxy-Upstream-Origin', result.upstreamOrigin)
+        res.setHeader('X-Proxy-Upstream-Line', result.logicalLine)
+        res.setHeader('X-Proxy-Upstream-Label', result.label)
+        res.setHeader('X-Proxy-Upstream-Elapsed-Ms', String(result.elapsedMs))
+        res.setHeader('X-Proxy-Response-Normalized', result.normalized ? '1' : '0')
+        res.writeHead(result.status, { 'Content-Type': result.contentType })
+        res.end(result.text)
+        return
+      }
+    }
 
-    const contentType = upstream.headers.get('content-type') || 'application/json; charset=utf-8'
-    const upstreamBody = Buffer.from(await upstream.arrayBuffer())
-
-    if (!contentType.includes('application/json')) {
-      res.writeHead(upstream.status, {
-        'Content-Type': contentType,
-        'Cache-Control': 'no-store',
-      })
-      res.end(upstreamBody)
+    if (lastResult) {
+      const message = lastResult.payload?.error?.message || lastResult.payload?.message || `上游接口返回 HTTP ${lastResult.status}`
+      sendJson(res, lastResult.status >= 400 ? lastResult.status : 502, { error: { message } })
       return
     }
 
-    let payload
-    try {
-      payload = JSON.parse(upstreamBody.toString('utf8'))
-    } catch {
-      sendText(res, upstream.status, upstreamBody.toString('utf8'))
-      return
-    }
-
-    if (!upstream.ok) {
-      const message = payload?.error?.message || payload?.message || `上游接口返回 HTTP ${upstream.status}`
-      sendJson(res, upstream.status, { error: { message } })
-      return
-    }
-
-    const fallbackMime = imageMimeFromFormat(payload?.output_format)
-    const normalized = await normalizeImageJson(payload, fallbackMime)
-    sendJson(res, upstream.status, normalized)
+    sendJson(res, 502, { error: { message: '所有上游线路均请求失败。' } })
   } catch (error) {
     const cause = error?.cause?.message ? ` (${error.cause.message})` : ''
     sendJson(res, 502, {

@@ -126,6 +126,12 @@ export default function DetailModal() {
     return `${mm}:${ss}`
   }
 
+  const formatProxyDuration = (value?: number) => {
+    if (!value || !Number.isFinite(value)) return null
+    const seconds = Math.round(value / 100) / 10
+    return `${seconds.toFixed(1)}s`
+  }
+
   const handleReuse = () => {
     reuseConfig(task)
     setDetailTaskId(null)
@@ -455,6 +461,21 @@ export default function DetailModal() {
               <span>创建于 {formatTime(task.createdAt)}</span>
               {formatDuration() && <span> · 耗时 {formatDuration()}</span>}
             </div>
+
+            {task.proxyRuntime && (
+              <div className="mb-4 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-white/[0.03] dark:text-gray-400">
+                <div>云端代理线路：{task.proxyRuntime.upstreamLine || '未知'}</div>
+                {formatProxyDuration(task.proxyRuntime.upstreamElapsedMs) && (
+                  <div>上游实际耗时：{formatProxyDuration(task.proxyRuntime.upstreamElapsedMs)}</div>
+                )}
+                {task.proxyRuntime.upstreamOrigin && (
+                  <div className="break-all">上游地址：{task.proxyRuntime.upstreamOrigin}</div>
+                )}
+                {typeof task.proxyRuntime.responseNormalized === 'boolean' && (
+                  <div>代理二次转码：{task.proxyRuntime.responseNormalized ? '是' : '否'}</div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* 操作按钮 */}

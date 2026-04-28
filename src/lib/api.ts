@@ -1,4 +1,4 @@
-import type { AppSettings, ImageApiResponse, ResponsesApiResponse, TaskParams } from '../types'
+import type { AppSettings, ImageApiResponse, ProxyRuntimeInfo, ResponsesApiResponse, TaskParams } from '../types'
 import { buildApiUrl, readClientDevProxyConfig } from './devProxy'
 
 const MIME_MAP: Record<string, string> = {
@@ -150,6 +150,27 @@ export interface CallApiResult {
   actualParamsList?: Array<Partial<TaskParams> | undefined>
   /** 每张图片对应的 API 改写提示词 */
   revisedPrompts?: Array<string | undefined>
+  /** 云端代理返回的运行时诊断信息 */
+  proxyRuntime?: ProxyRuntimeInfo
+}
+
+function readProxyRuntimeInfo(response: Response): ProxyRuntimeInfo | undefined {
+  const upstreamLine = response.headers.get('x-proxy-upstream-line') || undefined
+  const upstreamOrigin = response.headers.get('x-proxy-upstream-origin') || undefined
+  const upstreamElapsedRaw = response.headers.get('x-proxy-upstream-elapsed-ms')
+  const normalizedRaw = response.headers.get('x-proxy-response-normalized')
+
+  const upstreamElapsedMs = upstreamElapsedRaw != null ? Number(upstreamElapsedRaw) : undefined
+  const responseNormalized = normalizedRaw === '1' ? true : normalizedRaw === '0' ? false : undefined
+
+  const info: ProxyRuntimeInfo = {
+    upstreamLine,
+    upstreamOrigin,
+    upstreamElapsedMs: Number.isFinite(upstreamElapsedMs) ? upstreamElapsedMs : undefined,
+    responseNormalized,
+  }
+
+  return Object.values(info).some((value) => value !== undefined) ? info : undefined
 }
 
 function parseResponsesImageResults(payload: ResponsesApiResponse, fallbackMime: string): Array<{
@@ -372,6 +393,7 @@ async function callImagesApiSingle(opts: CallApiOptions): Promise<CallApiResult>
       actualParams,
       actualParamsList: images.map(() => actualParams),
       revisedPrompts,
+      proxyRuntime: readProxyRuntimeInfo(response),
     }
   } finally {
     clearTimeout(timeoutId)
@@ -456,6 +478,7 @@ async function callResponsesImageApiSingle(opts: CallApiOptions): Promise<CallAp
         mergeActualParams(result.actualParams ?? {}, settings.codexCli ? { quality: 'auto' } : {}),
       ),
       revisedPrompts: imageResults.map((result) => result.revisedPrompt),
+      proxyRuntime: readProxyRuntimeInfo(response),
     }
   } finally {
     clearTimeout(timeoutId)

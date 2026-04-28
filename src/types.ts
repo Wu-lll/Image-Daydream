@@ -19,6 +19,13 @@ export interface AppSettings {
   rememberCustomKey: boolean
 }
 
+export interface ProxyRuntimeInfo {
+  upstreamLine?: string
+  upstreamOrigin?: string
+  upstreamElapsedMs?: number
+  responseNormalized?: boolean
+}
+
 const DEFAULT_BASE_URL = import.meta.env.VITE_DEFAULT_API_URL?.trim() || 'https://www.souimagery.fun/v1'
 export const DEFAULT_BRIDGE_URL = import.meta.env.VITE_DEFAULT_BRIDGE_URL?.trim() || 'http://127.0.0.1:8765/v1'
 export const DEFAULT_IMAGES_MODEL = 'gpt-image-2'
@@ -110,6 +117,8 @@ export interface TaskRecord {
   finishedAt: number | null
   /** 总耗时毫秒 */
   elapsed: number | null
+  /** 云端代理返回的运行时诊断信息 */
+  proxyRuntime?: ProxyRuntimeInfo
   /** 是否收藏 */
   isFavorite?: boolean
 }

@@ -14,7 +14,7 @@ const SESSION_MAX_AGE_MS = Number(process.env.SESSION_MAX_AGE_DAYS || 30) * 24 *
 const SESSION_SECRET = process.env.SESSION_SECRET || 'dev-only-change-me'
 const ACCESS_CODE = process.env.ACCESS_CODE || ''
 const MAX_BODY_BYTES = Number(process.env.MAX_BODY_BYTES || 25 * 1024 * 1024)
-const UPSTREAM_TIMEOUT_MS = Number(process.env.UPSTREAM_TIMEOUT_MS || 65000)
+const UPSTREAM_TIMEOUT_MS = Number(process.env.UPSTREAM_TIMEOUT_MS || 150000)
 const SITE_FAILOVER_ENABLED = String(process.env.SITE_FAILOVER_ENABLED || 'true').toLowerCase() !== 'false'
 
 const MIME_TYPES = {

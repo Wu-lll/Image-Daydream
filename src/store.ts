@@ -437,6 +437,7 @@ async function executeTask(taskId: string) {
       actualParams: { ...result.actualParams, n: outputIds.length },
       actualParamsByImage: actualParamsByImage && Object.keys(actualParamsByImage).length > 0 ? actualParamsByImage : undefined,
       revisedPromptByImage: revisedPromptByImage && Object.keys(revisedPromptByImage).length > 0 ? revisedPromptByImage : undefined,
+      proxyRuntime: result.proxyRuntime,
       status: 'done',
       finishedAt: Date.now(),
       elapsed: Date.now() - task.createdAt,

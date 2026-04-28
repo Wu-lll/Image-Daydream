@@ -876,7 +876,7 @@ export default function InputBar() {
             onChange={handleFileUpload}
           />
         </div>
-        <div className="pt-2 text-center [font-family:var(--font-serif-display)] text-[11px] text-[rgba(63,86,110,0.48)]">
+        <div className="pt-2 text-center [font-family:var(--font-serif-display)] text-xs italic text-[rgba(63,86,110,0.52)]">
           for inspiration, for a quiet sheet of paper
         </div>
       </div>

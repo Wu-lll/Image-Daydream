@@ -1,5 +1,6 @@
 @import url('https://fontsapi.zeoseven.com/442/main/result.css');
 @import url('https://cdn.jsdelivr.net/npm/@lobehub/webfont-harmony-sans-sc@1.0.0/css/index.css');
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,6 +9,7 @@
 :root {
   --font-ui-sans: 'HarmonyOS Sans SC', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --font-serif-display: Georgia, 'Times New Roman', 'Songti SC', 'SimSun', serif;
+  --font-brand-script: 'Great Vibes', 'Snell Roundhand', 'Edwardian Script ITC', 'Segoe Script', cursive;
   --font-mono: 'Maple Mono', 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
   --page-bg: #f5f8fb;
   --page-bg-soft: #edf3f8;

@@ -19,7 +19,7 @@ export interface AppSettings {
   rememberCustomKey: boolean
 }
 
-const DEFAULT_BASE_URL = import.meta.env.VITE_DEFAULT_API_URL?.trim() || 'https://api.pptoken.org/v1'
+const DEFAULT_BASE_URL = import.meta.env.VITE_DEFAULT_API_URL?.trim() || 'https://www.souimagery.fun/v1'
 export const DEFAULT_BRIDGE_URL = import.meta.env.VITE_DEFAULT_BRIDGE_URL?.trim() || 'http://127.0.0.1:8765/v1'
 export const DEFAULT_IMAGES_MODEL = 'gpt-image-2'
 export const DEFAULT_RESPONSES_MODEL = 'gpt-5.5'
@@ -41,11 +41,11 @@ export const API_PRESETS = [
   },
 ] as const
 
-export const DEFAULT_API_PRESET = API_PRESETS[1]
+export const DEFAULT_API_PRESET = API_PRESETS[0]
 
 export const DEFAULT_SETTINGS: AppSettings = {
   credentialMode: 'site',
-  providerLine: 'line2',
+  providerLine: 'line1',
   baseUrl: import.meta.env.VITE_DEFAULT_API_URL?.trim() || DEFAULT_API_PRESET.baseUrl || DEFAULT_BASE_URL,
   apiKey: '',
   transportMode: DEFAULT_API_PRESET.transportMode,

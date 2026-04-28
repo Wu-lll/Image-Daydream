@@ -152,8 +152,8 @@ export default function SettingsModal() {
               <h4 className={sectionTitleClass}>默认线路</h4>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: '线路 1', value: 'line1' as const, desc: '备用' },
-                  { label: '线路 2', value: 'line2' as const, desc: '推荐' },
+                  { label: '线路 1', value: 'line1' as const, desc: '推荐' },
+                  { label: '线路 2', value: 'line2' as const, desc: '备用' },
                 ].map((line) => {
                   const active = draft.providerLine === line.value
                   return (

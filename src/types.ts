@@ -167,6 +167,9 @@ export interface ImageApiResponse {
   output_compression?: number
   moderation?: string
   n?: number
+  error?: { message?: string } | string
+  message?: string
+  _proxyRuntime?: ProxyRuntimeInfo
 }
 
 export interface ResponsesOutputItem {
@@ -195,6 +198,9 @@ export interface ResponsesApiResponse {
     moderation?: string
     n?: number
   }>
+  error?: { message?: string } | string
+  message?: string
+  _proxyRuntime?: ProxyRuntimeInfo
 }
 
 // ===== 导出数据 =====

@@ -154,7 +154,37 @@ export interface CallApiResult {
   proxyRuntime?: ProxyRuntimeInfo
 }
 
-function readProxyRuntimeInfo(response: Response): ProxyRuntimeInfo | undefined {
+function getPayloadErrorMessage(payload: unknown): string | undefined {
+  if (!payload || typeof payload !== 'object') return undefined
+  const record = payload as Record<string, unknown>
+  const error = record.error
+
+  if (error && typeof error === 'object' && typeof (error as Record<string, unknown>).message === 'string') {
+    return (error as Record<string, string>).message
+  }
+  if (typeof error === 'string') return error
+  if (typeof record.message === 'string') return record.message
+  return undefined
+}
+
+function readProxyRuntimeFromPayload(payload: unknown): ProxyRuntimeInfo | undefined {
+  if (!payload || typeof payload !== 'object') return undefined
+  const runtime = (payload as Record<string, unknown>)._proxyRuntime
+  if (!runtime || typeof runtime !== 'object') return undefined
+
+  const record = runtime as Record<string, unknown>
+  const upstreamElapsedMs = typeof record.upstreamElapsedMs === 'number' ? record.upstreamElapsedMs : undefined
+  const info: ProxyRuntimeInfo = {
+    upstreamLine: typeof record.upstreamLine === 'string' ? record.upstreamLine : undefined,
+    upstreamElapsedMs: Number.isFinite(upstreamElapsedMs) ? upstreamElapsedMs : undefined,
+    responseNormalized: typeof record.responseNormalized === 'boolean' ? record.responseNormalized : undefined,
+  }
+
+  return Object.values(info).some((value) => value !== undefined) ? info : undefined
+}
+
+function readProxyRuntimeInfo(response: Response, payload?: unknown): ProxyRuntimeInfo | undefined {
+  const payloadInfo = readProxyRuntimeFromPayload(payload)
   const upstreamLine = response.headers.get('x-proxy-upstream-line') || undefined
   const upstreamElapsedRaw = response.headers.get('x-proxy-upstream-elapsed-ms')
   const normalizedRaw = response.headers.get('x-proxy-response-normalized')
@@ -163,12 +193,35 @@ function readProxyRuntimeInfo(response: Response): ProxyRuntimeInfo | undefined 
   const responseNormalized = normalizedRaw === '1' ? true : normalizedRaw === '0' ? false : undefined
 
   const info: ProxyRuntimeInfo = {
-    upstreamLine,
-    upstreamElapsedMs: Number.isFinite(upstreamElapsedMs) ? upstreamElapsedMs : undefined,
-    responseNormalized,
+    ...payloadInfo,
+    upstreamLine: upstreamLine ?? payloadInfo?.upstreamLine,
+    upstreamElapsedMs: Number.isFinite(upstreamElapsedMs) ? upstreamElapsedMs : payloadInfo?.upstreamElapsedMs,
+    responseNormalized: responseNormalized ?? payloadInfo?.responseNormalized,
   }
 
   return Object.values(info).some((value) => value !== undefined) ? info : undefined
+}
+
+async function fetchApiResponse(settings: AppSettings, input: RequestInfo | URL, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(input, init)
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error(`请求超时：超过 ${settings.timeout} 秒仍未完成，请稍后重试或调高请求超时。`)
+    }
+
+    if (error instanceof TypeError && /fetch/i.test(error.message)) {
+      const mode =
+        settings.transportMode === 'server'
+          ? '云端代理'
+          : settings.transportMode === 'bridge'
+            ? '本地桥接'
+            : '浏览器直连'
+      throw new Error(`${mode}请求被连接层中断。若不是云端代理，请切回云端代理；若已经是云端代理，通常是长时间无响应或服务临时休眠导致。`)
+    }
+
+    throw error
+  }
 }
 
 function parseResponsesImageResults(payload: ResponsesApiResponse, fallbackMime: string): Array<{
@@ -313,7 +366,7 @@ async function callImagesApiSingle(opts: CallApiOptions): Promise<CallApiResult>
         formData.append('image[]', blob, `input-${i + 1}.${ext}`)
       }
 
-      response = await fetch(buildRequestUrl(settings, 'images/edits', proxyConfig), {
+      response = await fetchApiResponse(settings, buildRequestUrl(settings, 'images/edits', proxyConfig), {
         method: 'POST',
         headers: requestHeaders,
         cache: 'no-store',
@@ -340,7 +393,7 @@ async function callImagesApiSingle(opts: CallApiOptions): Promise<CallApiResult>
         body.n = params.n
       }
 
-      response = await fetch(buildRequestUrl(settings, 'images/generations', proxyConfig), {
+      response = await fetchApiResponse(settings, buildRequestUrl(settings, 'images/generations', proxyConfig), {
         method: 'POST',
         headers: {
           ...requestHeaders,
@@ -357,6 +410,11 @@ async function callImagesApiSingle(opts: CallApiOptions): Promise<CallApiResult>
     }
 
     const payload = await response.json() as ImageApiResponse
+    const payloadError = getPayloadErrorMessage(payload)
+    if (payloadError) {
+      throw new Error(payloadError)
+    }
+
     const data = payload.data
     if (!Array.isArray(data) || !data.length) {
       throw new Error('接口未返回图片数据')
@@ -391,7 +449,7 @@ async function callImagesApiSingle(opts: CallApiOptions): Promise<CallApiResult>
       actualParams,
       actualParamsList: images.map(() => actualParams),
       revisedPrompts,
-      proxyRuntime: readProxyRuntimeInfo(response),
+      proxyRuntime: readProxyRuntimeInfo(response, payload),
     }
   } finally {
     clearTimeout(timeoutId)
@@ -448,7 +506,7 @@ async function callResponsesImageApiSingle(opts: CallApiOptions): Promise<CallAp
       tool_choice: 'required',
     }
 
-    const response = await fetch(buildRequestUrl(settings, 'responses', proxyConfig), {
+    const response = await fetchApiResponse(settings, buildRequestUrl(settings, 'responses', proxyConfig), {
       method: 'POST',
       headers: {
         ...requestHeaders,
@@ -464,6 +522,11 @@ async function callResponsesImageApiSingle(opts: CallApiOptions): Promise<CallAp
     }
 
     const payload = await response.json() as ResponsesApiResponse
+    const payloadError = getPayloadErrorMessage(payload)
+    if (payloadError) {
+      throw new Error(payloadError)
+    }
+
     const imageResults = parseResponsesImageResults(payload, mime)
     const actualParams = mergeActualParams(
       imageResults[0]?.actualParams ?? {},
@@ -476,7 +539,7 @@ async function callResponsesImageApiSingle(opts: CallApiOptions): Promise<CallAp
         mergeActualParams(result.actualParams ?? {}, settings.codexCli ? { quality: 'auto' } : {}),
       ),
       revisedPrompts: imageResults.map((result) => result.revisedPrompt),
-      proxyRuntime: readProxyRuntimeInfo(response),
+      proxyRuntime: readProxyRuntimeInfo(response, payload),
     }
   } finally {
     clearTimeout(timeoutId)

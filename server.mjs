@@ -15,6 +15,7 @@ const SESSION_SECRET = process.env.SESSION_SECRET || 'dev-only-change-me'
 const ACCESS_CODE = process.env.ACCESS_CODE || ''
 const MAX_BODY_BYTES = Number(process.env.MAX_BODY_BYTES || 25 * 1024 * 1024)
 const UPSTREAM_TIMEOUT_MS = Number(process.env.UPSTREAM_TIMEOUT_MS || 210000)
+const PROXY_KEEPALIVE_MS = Number(process.env.PROXY_KEEPALIVE_MS || 25000)
 const SITE_FAILOVER_ENABLED = String(process.env.SITE_FAILOVER_ENABLED || 'true').toLowerCase() !== 'false'
 
 const MIME_TYPES = {
@@ -159,6 +160,76 @@ function sendJson(res, statusCode, payload) {
     'Cache-Control': 'no-store',
   })
   res.end(JSON.stringify(payload))
+}
+
+function createProxyResponder(res) {
+  let keepAliveStarted = false
+  let keepAliveTimer = null
+  const stopKeepAlive = () => {
+    if (keepAliveTimer) clearInterval(keepAliveTimer)
+    keepAliveTimer = null
+  }
+  res.on('close', stopKeepAlive)
+
+  keepAliveTimer = PROXY_KEEPALIVE_MS > 0
+    ? setInterval(() => {
+        if (res.writableEnded || res.destroyed) return
+        if (!res.headersSent) {
+          res.writeHead(200, {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Cache-Control': 'no-store',
+            'X-Proxy-Streaming': '1',
+          })
+          keepAliveStarted = true
+        }
+        // Leading JSON whitespace is valid and prevents idle proxy disconnects.
+        res.write(' '.repeat(1024))
+      }, PROXY_KEEPALIVE_MS)
+    : null
+
+  return {
+    endJson(statusCode, payload, headers = {}) {
+      stopKeepAlive()
+      if (res.writableEnded || res.destroyed) return
+
+      const finalPayload =
+        keepAliveStarted && statusCode >= 400 && payload && typeof payload === 'object'
+          ? { ...payload, _proxyStatus: statusCode }
+          : payload
+
+      if (res.headersSent) {
+        res.end(JSON.stringify(finalPayload))
+        return
+      }
+
+      res.writeHead(statusCode, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-store',
+        ...headers,
+      })
+      res.end(JSON.stringify(finalPayload))
+    },
+
+    endText(statusCode, text, contentType, headers = {}) {
+      stopKeepAlive()
+      if (res.writableEnded || res.destroyed) return
+
+      if (res.headersSent) {
+        res.end(JSON.stringify({
+          error: { message: text || `上游接口返回 HTTP ${statusCode}` },
+          _proxyStatus: statusCode,
+        }))
+        return
+      }
+
+      res.writeHead(statusCode, {
+        'Content-Type': contentType || 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-store',
+        ...headers,
+      })
+      res.end(text)
+    },
+  }
 }
 
 function sendText(res, statusCode, text) {
@@ -379,6 +450,21 @@ async function normalizeResponsePayload(apiPath, payload, fallbackMime) {
   return payload
 }
 
+function proxyRuntimeFromResult(result) {
+  if (!result) return undefined
+  return {
+    upstreamLine: result.logicalLine,
+    upstreamElapsedMs: result.elapsedMs,
+    responseNormalized: result.normalized,
+  }
+}
+
+function payloadWithProxyRuntime(payload, result) {
+  const runtime = proxyRuntimeFromResult(result)
+  if (!payload || typeof payload !== 'object' || !runtime) return payload
+  return { ...payload, _proxyRuntime: runtime }
+}
+
 async function callUpstream(candidate, req, body, contentType, index) {
   const endpointUrl = makeUpstreamUrl(candidate.baseUrl, req.url)
   let requestBody = body
@@ -500,6 +586,7 @@ async function handleProxy(req, res, url) {
 
   let body = await readBody(req)
   const contentType = typeof req.headers['content-type'] === 'string' ? req.headers['content-type'] : ''
+  const responder = createProxyResponder(res)
   let lastResult = null
   let lastError = null
 
@@ -509,13 +596,18 @@ async function handleProxy(req, res, url) {
         const result = await callUpstream(candidate, req, body, contentType, index)
         lastResult = result
         if (result.usable) {
-          res.setHeader('Cache-Control', 'no-store')
-          res.setHeader('X-Proxy-Upstream-Index', String(result.upstreamIndex))
-          res.setHeader('X-Proxy-Upstream-Line', result.logicalLine)
-          res.setHeader('X-Proxy-Upstream-Elapsed-Ms', String(result.elapsedMs))
-          res.setHeader('X-Proxy-Response-Normalized', result.normalized ? '1' : '0')
-          res.writeHead(result.status, { 'Content-Type': result.contentType })
-          res.end(result.text)
+          const proxyHeaders = {
+            'X-Proxy-Upstream-Index': String(result.upstreamIndex),
+            'X-Proxy-Upstream-Line': result.logicalLine,
+            'X-Proxy-Upstream-Elapsed-Ms': String(result.elapsedMs),
+            'X-Proxy-Response-Normalized': result.normalized ? '1' : '0',
+          }
+
+          if (result.payload && result.contentType.includes('application/json')) {
+            responder.endJson(result.status, payloadWithProxyRuntime(result.payload, result), proxyHeaders)
+          } else {
+            responder.endText(result.status, result.text, result.contentType, proxyHeaders)
+          }
           return
         }
       } catch (error) {
@@ -525,14 +617,17 @@ async function handleProxy(req, res, url) {
 
     if (lastResult) {
       const message = lastResult.payload?.error?.message || lastResult.payload?.message || `上游接口返回 HTTP ${lastResult.status}`
-      sendJson(res, lastResult.status >= 400 ? lastResult.status : 502, { error: { message } })
+      responder.endJson(
+        lastResult.status >= 400 ? lastResult.status : 502,
+        payloadWithProxyRuntime({ error: { message } }, lastResult),
+      )
       return
     }
 
-    sendJson(res, 502, { error: { message: lastError instanceof Error ? lastError.message : '所有上游线路均请求失败。' } })
+    responder.endJson(502, { error: { message: lastError instanceof Error ? lastError.message : '所有上游线路均请求失败。' } })
   } catch (error) {
     const cause = error?.cause?.message ? ` (${error.cause.message})` : ''
-    sendJson(res, 502, {
+    responder.endJson(502, {
       error: {
         message: error instanceof Error ? `${error.message}${cause}` : '上游接口请求失败。',
       },

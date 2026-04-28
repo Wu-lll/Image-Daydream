@@ -30,18 +30,25 @@ export default function TaskGrid() {
   const filteredTasks = useMemo(() => {
     const sorted = [...tasks].sort((a, b) => b.createdAt - a.createdAt)
     const q = searchQuery.trim().toLowerCase()
-    
+
     return sorted.filter((t) => {
       if (filterFavorite && !t.isFavorite) return false
       const matchStatus = filterStatus === 'all' || t.status === filterStatus
       if (!matchStatus) return false
-      
+
       if (!q) return true
       const prompt = (t.prompt || '').toLowerCase()
       const paramStr = JSON.stringify(t.params).toLowerCase()
       return prompt.includes(q) || paramStr.includes(q)
     })
   }, [tasks, searchQuery, filterStatus, filterFavorite])
+
+  const stats = useMemo(() => {
+    const done = tasks.filter((t) => t.status === 'done').length
+    const running = tasks.filter((t) => t.status === 'running').length
+    const error = tasks.filter((t) => t.status === 'error').length
+    return { total: tasks.length, done, running, error }
+  }, [tasks])
 
   const handleDelete = (task: typeof tasks[0]) => {
     setConfirmDialog({
@@ -52,11 +59,36 @@ export default function TaskGrid() {
   }
 
   const renderGridHeader = () => (
-    <div className="mb-3 flex items-end justify-between gap-3">
+    <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <h2 className="[font-family:var(--font-serif-display)] text-2xl font-medium tracking-normal text-[rgb(29,39,49)]">
           作品墙
         </h2>
+        <p className="mt-1 text-xs text-[rgba(102,118,136,0.78)]">
+          {stats.total > 0
+            ? `当前显示 ${filteredTasks.length} 条，共 ${stats.total} 条作品记录`
+            : '作品会按时间安静地留在这里'}
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 text-[11px] text-[rgba(63,86,110,0.76)]">
+        <span className="rounded-full border border-[rgba(63,86,110,0.12)] bg-[rgba(248,251,255,0.74)] px-2.5 py-1 shadow-[0_8px_22px_rgba(42,59,77,0.05)]">
+          已完成 {stats.done}
+        </span>
+        {stats.running > 0 && (
+          <span className="rounded-full border border-[rgba(93,126,163,0.22)] bg-[rgba(225,235,246,0.78)] px-2.5 py-1 text-[rgb(63,92,122)] shadow-[0_8px_22px_rgba(42,59,77,0.05)]">
+            生成中 {stats.running}
+          </span>
+        )}
+        {stats.error > 0 && (
+          <span className="rounded-full border border-[rgba(180,93,90,0.2)] bg-[rgba(180,93,90,0.08)] px-2.5 py-1 text-[rgb(150,75,72)] shadow-[0_8px_22px_rgba(42,59,77,0.05)]">
+            失败 {stats.error}
+          </span>
+        )}
+        {selectedTaskIds.length > 0 && (
+          <span className="rounded-full border border-[rgba(47,57,67,0.16)] bg-[rgba(47,57,67,0.86)] px-2.5 py-1 text-white shadow-[0_8px_22px_rgba(42,59,77,0.1)]">
+            已选 {selectedTaskIds.length}
+          </span>
+        )}
       </div>
     </div>
   )

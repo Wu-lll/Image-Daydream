@@ -172,7 +172,7 @@ export default function TaskCard({
     : 'bg-gray-200 dark:bg-gray-700'
 
   return (
-    <div className="relative rounded-xl">
+    <div className="group relative rounded-xl">
       {/* 侧滑底图 */}
       <div
         className={`absolute inset-0 rounded-xl flex items-center transition-opacity duration-200 pointer-events-none ${
@@ -191,7 +191,7 @@ export default function TaskCard({
       </div>
 
       <div
-        className={`relative bg-white dark:bg-gray-900 rounded-xl border overflow-hidden cursor-pointer duration-200 hover:shadow-lg dark:hover:bg-gray-800/80 ${
+        className={`relative bg-white dark:bg-gray-900 rounded-xl border overflow-hidden cursor-pointer duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_56px_rgba(42,59,77,0.13)] dark:hover:bg-gray-800/80 ${
           !isSwiping ? 'transition-[box-shadow,border-color,background-color,transform]' : 'transition-[box-shadow,border-color,background-color]'
         } ${
           task.status === 'running'
@@ -230,27 +230,30 @@ export default function TaskCard({
         {/* 左侧图片区域 */}
         <div className="w-40 min-w-[10rem] h-full relative flex items-center justify-center overflow-hidden flex-shrink-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.94),_rgba(231,239,247,0.86)_72%)] dark:bg-black/20">
           {task.status === 'running' && (
-            <div className="flex flex-col items-center gap-2">
-              <svg
-                className="w-8 h-8 text-[rgb(93,126,163)] animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
-              </svg>
-              <span className="text-xs text-[rgba(102,118,136,0.88)] dark:text-gray-500">正在生成，请稍等</span>
+            <div className="relative flex h-full w-full flex-col items-center justify-center gap-2 overflow-hidden">
+              <div className="running-sheen absolute inset-0" />
+              <div className="relative h-11 w-11 rounded-full border border-[rgba(93,126,163,0.16)] bg-white/58 p-2 shadow-[0_10px_24px_rgba(42,59,77,0.08)] backdrop-blur">
+                <svg
+                  className="h-full w-full text-[rgb(93,126,163)] animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
+                </svg>
+            </div>
+              <span className="relative rounded-full border border-[rgba(93,126,163,0.12)] bg-white/60 px-2 py-1 text-xs text-[rgba(63,86,110,0.88)] shadow-sm backdrop-blur dark:text-gray-500">正在生成，请稍等</span>
             </div>
           )}
           {task.status === 'error' && (
@@ -277,12 +280,13 @@ export default function TaskCard({
             <>
               <img
                 src={thumbSrc}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition duration-500 group-hover:scale-[1.035]"
                 loading="lazy"
                 alt=""
               />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[rgba(13,24,35,0.18)] via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               {task.outputImages.length > 1 && (
-                <span className="absolute bottom-1 right-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
+                <span className="absolute bottom-1 right-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded backdrop-blur-sm">
                   {task.outputImages.length}
                 </span>
               )}
@@ -328,7 +332,7 @@ export default function TaskCard({
         {/* 右侧信息区域 */}
         <div className="flex-1 p-3 flex flex-col min-w-0">
           <div className="flex-1 min-h-0 mb-2">
-            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">
+            <p className="text-sm text-[rgba(29,39,49,0.86)] dark:text-gray-300 leading-relaxed line-clamp-3">
               {task.prompt || '(无提示词)'}
             </p>
           </div>
@@ -342,7 +346,7 @@ export default function TaskCard({
               </div>
             {/* 操作按钮 */}
             <div
-              className="flex gap-1 justify-end flex-shrink-0"
+              className="flex gap-1 justify-end flex-shrink-0 opacity-85 transition-opacity duration-200 group-hover:opacity-100"
               onClick={(e) => e.stopPropagation()}
             >
               <button

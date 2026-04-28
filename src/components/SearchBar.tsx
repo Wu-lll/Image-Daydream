@@ -10,14 +10,14 @@ export default function SearchBar() {
   const setFilterFavorite = useStore((s) => s.setFilterFavorite)
 
   return (
-    <div className="mt-6 mb-4 flex gap-3">
+    <div className="mt-6 mb-4 flex flex-col gap-3 rounded-[1.6rem] border border-[rgba(63,86,110,0.12)] bg-[rgba(248,251,255,0.58)] p-2 shadow-[0_18px_48px_rgba(42,59,77,0.06)] backdrop-blur-xl sm:flex-row">
       <div className="flex gap-2 flex-shrink-0 z-20">
         <button
           onClick={() => setFilterFavorite(!filterFavorite)}
           className={`p-2.5 rounded-xl border transition-all ${
             filterFavorite
               ? 'border-[rgba(93,126,163,0.45)] bg-[rgba(225,235,246,0.82)] dark:bg-blue-500/10 text-[rgb(63,92,122)]'
-              : 'border-[rgba(63,86,110,0.12)] dark:border-white/[0.08] bg-[rgba(248,251,255,0.84)] dark:bg-gray-900 text-[rgba(102,118,136,0.86)] hover:bg-white dark:hover:bg-white/[0.06]'
+              : 'border-[rgba(63,86,110,0.12)] dark:border-white/[0.08] bg-white/55 dark:bg-gray-900 text-[rgba(102,118,136,0.86)] hover:bg-white dark:hover:bg-white/[0.06]'
           }`}
           title={filterFavorite ? '取消只看收藏' : '只看收藏'}
         >
@@ -25,7 +25,7 @@ export default function SearchBar() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
           </svg>
         </button>
-        <div className="relative w-28">
+        <div className="relative w-32">
           <Select
             value={filterStatus}
             onChange={(val) => setFilterStatus(val as any)}
@@ -35,7 +35,7 @@ export default function SearchBar() {
               { label: '生成中', value: 'running' },
               { label: '失败', value: 'error' },
             ]}
-            className="px-3 py-2.5 rounded-xl border border-[rgba(63,86,110,0.12)] dark:border-white/[0.08] bg-[rgba(248,251,255,0.84)] dark:bg-gray-900 hover:bg-white dark:hover:bg-white/[0.06] text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(93,126,163,0.16)] focus:border-[rgba(93,126,163,0.38)] transition"
+            className="px-3 py-2.5 rounded-xl border border-[rgba(63,86,110,0.12)] dark:border-white/[0.08] bg-white/55 dark:bg-gray-900 hover:bg-white dark:hover:bg-white/[0.06] text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(93,126,163,0.16)] focus:border-[rgba(93,126,163,0.38)] transition"
           />
         </div>
       </div>
@@ -58,7 +58,7 @@ export default function SearchBar() {
           onChange={(e) => setSearchQuery(e.target.value)}
           type="text"
           placeholder="搜索提示词、参数..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[rgba(63,86,110,0.12)] dark:border-white/[0.08] bg-[rgba(248,251,255,0.84)] dark:bg-gray-900 text-sm text-[rgb(29,39,49)] dark:text-gray-100 placeholder:text-[rgba(102,118,136,0.58)] focus:outline-none focus:ring-2 focus:ring-[rgba(93,126,163,0.16)] focus:border-[rgba(93,126,163,0.38)] transition"
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[rgba(63,86,110,0.12)] dark:border-white/[0.08] bg-white/55 dark:bg-gray-900 text-sm text-[rgb(29,39,49)] dark:text-gray-100 placeholder:text-[rgba(102,118,136,0.58)] focus:outline-none focus:ring-2 focus:ring-[rgba(93,126,163,0.16)] focus:border-[rgba(93,126,163,0.38)] transition"
         />
       </div>
     </div>

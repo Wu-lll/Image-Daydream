@@ -108,6 +108,37 @@ input[type="number"] {
   mask-image: linear-gradient(to right, black 85%, transparent 100%);
 }
 
+@keyframes gallery-card-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.task-card-wrapper {
+  animation: gallery-card-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.task-card-wrapper:nth-child(2n) {
+  animation-delay: 35ms;
+}
+
+.task-card-wrapper:nth-child(3n) {
+  animation-delay: 70ms;
+}
+
+@keyframes running-sheen {
+  0% { transform: translateX(-120%); opacity: 0; }
+  24% { opacity: 0.55; }
+  100% { transform: translateX(120%); opacity: 0; }
+}
+
+.running-sheen::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.7) 48%, transparent 72%);
+  animation: running-sheen 2.4s ease-in-out infinite;
+}
+
 @keyframes toast-enter {
   0% { transform: translate(-50%, 16px); opacity: 0; }
   100% { transform: translate(-50%, 0); opacity: 1; }

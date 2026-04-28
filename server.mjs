@@ -323,6 +323,22 @@ function payloadNeedsNormalization(apiPath, payload) {
   return false
 }
 
+function hasUsableImagePayload(apiPath, payload) {
+  if (!payload) return false
+
+  if (apiPath.startsWith('/api/openai/v1/images/')) {
+    return Array.isArray(payload.data) && payload.data.some((item) => item?.b64_json || item?.url)
+  }
+
+  if (apiPath === '/api/openai/v1/responses') {
+    return Array.isArray(payload.output) && payload.output.some(
+      (item) => item?.type === 'image_generation_call' && item?.result,
+    )
+  }
+
+  return true
+}
+
 function normalizeBase64Image(value, fallbackMime) {
   if (!value || typeof value !== 'string') return ''
   return value.startsWith('data:') ? value : `data:${fallbackMime};base64,${value}`
@@ -488,22 +504,26 @@ async function handleProxy(req, res, url) {
   let body = await readBody(req)
   const contentType = typeof req.headers['content-type'] === 'string' ? req.headers['content-type'] : ''
   let lastResult = null
+  let lastError = null
 
   try {
     for (const [index, candidate] of candidates.entries()) {
-      const result = await callUpstream(candidate, req, body, contentType, index)
-      lastResult = result
-      if (result.usable) {
-        res.setHeader('Cache-Control', 'no-store')
-        res.setHeader('X-Proxy-Upstream-Index', String(result.upstreamIndex))
-        res.setHeader('X-Proxy-Upstream-Origin', result.upstreamOrigin)
-        res.setHeader('X-Proxy-Upstream-Line', result.logicalLine)
-        res.setHeader('X-Proxy-Upstream-Label', result.label)
-        res.setHeader('X-Proxy-Upstream-Elapsed-Ms', String(result.elapsedMs))
-        res.setHeader('X-Proxy-Response-Normalized', result.normalized ? '1' : '0')
-        res.writeHead(result.status, { 'Content-Type': result.contentType })
-        res.end(result.text)
-        return
+      try {
+        const result = await callUpstream(candidate, req, body, contentType, index)
+        lastResult = result
+        if (result.usable) {
+          res.setHeader('Cache-Control', 'no-store')
+          res.setHeader('X-Proxy-Upstream-Index', String(result.upstreamIndex))
+          res.setHeader('X-Proxy-Upstream-Origin', result.upstreamOrigin)
+          res.setHeader('X-Proxy-Upstream-Line', result.logicalLine)
+          res.setHeader('X-Proxy-Upstream-Elapsed-Ms', String(result.elapsedMs))
+          res.setHeader('X-Proxy-Response-Normalized', result.normalized ? '1' : '0')
+          res.writeHead(result.status, { 'Content-Type': result.contentType })
+          res.end(result.text)
+          return
+        }
+      } catch (error) {
+        lastError = error
       }
     }
 
@@ -513,7 +533,7 @@ async function handleProxy(req, res, url) {
       return
     }
 
-    sendJson(res, 502, { error: { message: '所有上游线路均请求失败。' } })
+    sendJson(res, 502, { error: { message: lastError instanceof Error ? lastError.message : '所有上游线路均请求失败。' } })
   } catch (error) {
     const cause = error?.cause?.message ? ` (${error.cause.message})` : ''
     sendJson(res, 502, {

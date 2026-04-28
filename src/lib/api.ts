@@ -42,6 +42,16 @@ async function fetchImageUrlAsDataUrl(url: string, fallbackMime: string, signal:
   return blobToDataUrl(await response.blob(), fallbackMime)
 }
 
+function normalizeApiErrorMessage(message: string): string {
+  if (/upstream service temporarily unavailable/i.test(message)) {
+    return '上游服务临时不可用，请稍后重试或切换线路。'
+  }
+  if (/failed to parse request body/i.test(message)) {
+    return '上游无法解析请求参数，请检查模型、尺寸、质量等设置后重试。'
+  }
+  return message
+}
+
 async function getApiErrorMessage(response: Response): Promise<string> {
   let errorMsg = `HTTP ${response.status}`
   try {
@@ -55,7 +65,7 @@ async function getApiErrorMessage(response: Response): Promise<string> {
       /* ignore */
     }
   }
-  return errorMsg
+  return normalizeApiErrorMessage(errorMsg)
 }
 
 function createRequestHeaders(settings: AppSettings): Record<string, string> {
@@ -160,10 +170,10 @@ function getPayloadErrorMessage(payload: unknown): string | undefined {
   const error = record.error
 
   if (error && typeof error === 'object' && typeof (error as Record<string, unknown>).message === 'string') {
-    return (error as Record<string, string>).message
+    return normalizeApiErrorMessage((error as Record<string, string>).message)
   }
-  if (typeof error === 'string') return error
-  if (typeof record.message === 'string') return record.message
+  if (typeof error === 'string') return normalizeApiErrorMessage(error)
+  if (typeof record.message === 'string') return normalizeApiErrorMessage(record.message)
   return undefined
 }
 

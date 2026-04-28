@@ -468,9 +468,6 @@ export default function DetailModal() {
                 {formatProxyDuration(task.proxyRuntime.upstreamElapsedMs) && (
                   <div>上游实际耗时：{formatProxyDuration(task.proxyRuntime.upstreamElapsedMs)}</div>
                 )}
-                {task.proxyRuntime.upstreamOrigin && (
-                  <div className="break-all">上游地址：{task.proxyRuntime.upstreamOrigin}</div>
-                )}
                 {typeof task.proxyRuntime.responseNormalized === 'boolean' && (
                   <div>代理二次转码：{task.proxyRuntime.responseNormalized ? '是' : '否'}</div>
                 )}

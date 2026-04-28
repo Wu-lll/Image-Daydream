@@ -156,7 +156,6 @@ export interface CallApiResult {
 
 function readProxyRuntimeInfo(response: Response): ProxyRuntimeInfo | undefined {
   const upstreamLine = response.headers.get('x-proxy-upstream-line') || undefined
-  const upstreamOrigin = response.headers.get('x-proxy-upstream-origin') || undefined
   const upstreamElapsedRaw = response.headers.get('x-proxy-upstream-elapsed-ms')
   const normalizedRaw = response.headers.get('x-proxy-response-normalized')
 
@@ -165,7 +164,6 @@ function readProxyRuntimeInfo(response: Response): ProxyRuntimeInfo | undefined 
 
   const info: ProxyRuntimeInfo = {
     upstreamLine,
-    upstreamOrigin,
     upstreamElapsedMs: Number.isFinite(upstreamElapsedMs) ? upstreamElapsedMs : undefined,
     responseNormalized,
   }

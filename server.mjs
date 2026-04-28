@@ -431,7 +431,6 @@ async function callUpstream(candidate, req, body, contentType, index) {
         elapsedMs,
         normalized: false,
         upstreamIndex: index,
-        upstreamOrigin: new URL(candidate.baseUrl).origin,
         logicalLine: candidate.logicalLine,
         label: candidate.label,
       }
@@ -452,7 +451,6 @@ async function callUpstream(candidate, req, body, contentType, index) {
         elapsedMs,
         normalized: false,
         upstreamIndex: index,
-        upstreamOrigin: new URL(candidate.baseUrl).origin,
         logicalLine: candidate.logicalLine,
         label: candidate.label,
       }
@@ -473,14 +471,13 @@ async function callUpstream(candidate, req, body, contentType, index) {
       status: upstream.status,
       text: responseText,
       contentType: responseContentType,
-      payload,
-      elapsedMs,
-      normalized,
-      upstreamIndex: index,
-      upstreamOrigin: new URL(candidate.baseUrl).origin,
-      logicalLine: candidate.logicalLine,
-      label: candidate.label,
-    }
+        payload,
+        elapsedMs,
+        normalized,
+        upstreamIndex: index,
+        logicalLine: candidate.logicalLine,
+        label: candidate.label,
+      }
   } finally {
     clearTimeout(timeoutId)
   }
@@ -514,7 +511,6 @@ async function handleProxy(req, res, url) {
         if (result.usable) {
           res.setHeader('Cache-Control', 'no-store')
           res.setHeader('X-Proxy-Upstream-Index', String(result.upstreamIndex))
-          res.setHeader('X-Proxy-Upstream-Origin', result.upstreamOrigin)
           res.setHeader('X-Proxy-Upstream-Line', result.logicalLine)
           res.setHeader('X-Proxy-Upstream-Elapsed-Ms', String(result.elapsedMs))
           res.setHeader('X-Proxy-Response-Normalized', result.normalized ? '1' : '0')

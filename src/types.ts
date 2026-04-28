@@ -21,7 +21,6 @@ export interface AppSettings {
 
 export interface ProxyRuntimeInfo {
   upstreamLine?: string
-  upstreamOrigin?: string
   upstreamElapsedMs?: number
   responseNormalized?: boolean
 }

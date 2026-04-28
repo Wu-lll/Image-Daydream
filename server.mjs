@@ -51,13 +51,38 @@ function normalizeBaseUrl(value) {
   }
 }
 
+function inferProviderKind(baseUrl) {
+  const normalized = normalizeBaseUrl(baseUrl).toLowerCase()
+  if (!normalized) return null
+  if (normalized.includes('pptoken')) return 'pptoken'
+  if (normalized.includes('souimagery')) return 'sou'
+  return null
+}
+
+function resolvePhysicalLine(line) {
+  const line1Kind = inferProviderKind(process.env.LINE1_BASE_URL || '')
+  const line2Kind = inferProviderKind(process.env.LINE2_BASE_URL || '')
+
+  // Compatibility shim:
+  // Earlier deployments often stored PPToken in LINE1 and Sou in LINE2.
+  // If that inverted layout is still present, swap the backing env set so
+  // logical line2 becomes PPToken without forcing an immediate env rewrite.
+  if (line1Kind === 'pptoken' && line2Kind === 'sou') {
+    return line === 'line2' ? 'line1' : 'line2'
+  }
+
+  return line
+}
+
 function providerConfig(line) {
-  const prefix = line === 'line2' ? 'LINE2' : 'LINE1'
-  const fallbackPrefix = line === 'line2' ? 'SOU' : 'PPTOKEN'
-  const fallbackBaseUrl = line === 'line2' ? 'https://www.souimagery.fun/v1' : 'https://api.pptoken.org/v1'
+  const physicalLine = resolvePhysicalLine(line)
+  const prefix = physicalLine === 'line2' ? 'LINE2' : 'LINE1'
+  const labelPrefix = line === 'line2' ? 'LINE2' : 'LINE1'
+  const fallbackPrefix = line === 'line2' ? 'PPTOKEN' : 'SOU'
+  const fallbackBaseUrl = line === 'line2' ? 'https://api.pptoken.org/v1' : 'https://www.souimagery.fun/v1'
   return {
     id: line === 'line2' ? 'line2' : 'line1',
-    label: process.env[`${prefix}_LABEL`] || (line === 'line2' ? '线路 2' : '线路 1'),
+    label: process.env[`${labelPrefix}_LABEL`] || (line === 'line2' ? '线路 2' : '线路 1'),
     baseUrl: normalizeBaseUrl(process.env[`${prefix}_BASE_URL`] || process.env[`${fallbackPrefix}_BASE_URL`] || fallbackBaseUrl),
     apiKey: process.env[`${prefix}_API_KEY`] || process.env[`${fallbackPrefix}_API_KEY`] || '',
     model: process.env[`${prefix}_MODEL`] || process.env.DEFAULT_IMAGE_MODEL || 'gpt-image-2',

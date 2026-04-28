@@ -16,7 +16,9 @@ const ACCESS_CODE = process.env.ACCESS_CODE || ''
 const MAX_BODY_BYTES = Number(process.env.MAX_BODY_BYTES || 25 * 1024 * 1024)
 const UPSTREAM_TIMEOUT_MS = Number(process.env.UPSTREAM_TIMEOUT_MS || 210000)
 const PROXY_KEEPALIVE_MS = Number(process.env.PROXY_KEEPALIVE_MS || 25000)
+const PROXY_JOB_TTL_MS = Number(process.env.PROXY_JOB_TTL_MS || 10 * 60 * 1000)
 const SITE_FAILOVER_ENABLED = String(process.env.SITE_FAILOVER_ENABLED || 'true').toLowerCase() !== 'false'
+const proxyJobs = new Map()
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -465,6 +467,74 @@ function payloadWithProxyRuntime(payload, result) {
   return { ...payload, _proxyRuntime: runtime }
 }
 
+function cleanupProxyJobs() {
+  const now = Date.now()
+  for (const [id, job] of proxyJobs.entries()) {
+    if (now - job.createdAt > PROXY_JOB_TTL_MS) {
+      proxyJobs.delete(id)
+    }
+  }
+}
+
+function setProxyJob(id, patch) {
+  const current = proxyJobs.get(id)
+  if (!current) return
+  proxyJobs.set(id, { ...current, ...patch, updatedAt: Date.now() })
+}
+
+async function runProxyJob(id, candidates, reqSnapshot, body, contentType) {
+  let lastResult = null
+  let lastError = null
+
+  try {
+    for (const [index, candidate] of candidates.entries()) {
+      try {
+        const result = await callUpstream(candidate, reqSnapshot, body, contentType, index)
+        lastResult = result
+        if (result.usable) {
+          setProxyJob(id, {
+            status: 'done',
+            statusCode: result.status,
+            payload: result.payload && result.contentType.includes('application/json')
+              ? payloadWithProxyRuntime(result.payload, result)
+              : payloadWithProxyRuntime({ data: [] }, result),
+          })
+          return
+        }
+      } catch (error) {
+        lastError = error
+      }
+    }
+
+    if (lastResult) {
+      const message = lastResult.payload?.error?.message || lastResult.payload?.message || `上游接口返回 HTTP ${lastResult.status}`
+      setProxyJob(id, {
+        status: 'error',
+        statusCode: lastResult.status >= 400 ? lastResult.status : 502,
+        payload: payloadWithProxyRuntime({ error: { message } }, lastResult),
+      })
+      return
+    }
+
+    setProxyJob(id, {
+      status: 'error',
+      statusCode: 502,
+      payload: { error: { message: lastError instanceof Error ? lastError.message : '所有上游线路均请求失败。' } },
+    })
+  } catch (error) {
+    const cause = error?.cause?.message ? ` (${error.cause.message})` : ''
+    setProxyJob(id, {
+      status: 'error',
+      statusCode: 502,
+      payload: {
+        error: {
+          message: error instanceof Error ? `${error.message}${cause}` : '上游接口请求失败。',
+        },
+      },
+    })
+  }
+}
+
 async function callUpstream(candidate, req, body, contentType, index) {
   const endpointUrl = makeUpstreamUrl(candidate.baseUrl, req.url)
   let requestBody = body
@@ -635,6 +705,109 @@ async function handleProxy(req, res, url) {
   }
 }
 
+async function handleProxyJobCreate(req, res) {
+  const session = getValidSession(req, res)
+  if (!session) {
+    sendJson(res, 401, { error: { message: '访问已过期，请重新输入口令。' } })
+    return
+  }
+
+  let candidates
+  try {
+    candidates = buildCredentialCandidates(req)
+  } catch (error) {
+    sendJson(res, 400, { error: { message: error.message } })
+    return
+  }
+
+  let envelope
+  try {
+    envelope = await readJson(req)
+  } catch {
+    sendJson(res, 400, { error: { message: 'Invalid JSON body.' } })
+    return
+  }
+
+  const cleanPath = String(envelope.path || '').replace(/^\/+/, '')
+  if (cleanPath !== 'images/generations' && cleanPath !== 'responses') {
+    sendJson(res, 400, { error: { message: '不支持的异步代理路径。' } })
+    return
+  }
+
+  const requestPayload = envelope.body
+  if (!requestPayload || typeof requestPayload !== 'object') {
+    sendJson(res, 400, { error: { message: '异步代理缺少请求参数。' } })
+    return
+  }
+
+  cleanupProxyJobs()
+  const id = crypto.randomUUID()
+  const now = Date.now()
+  proxyJobs.set(id, {
+    id,
+    status: 'running',
+    createdAt: now,
+    updatedAt: now,
+    statusCode: 202,
+    payload: null,
+  })
+
+  const reqSnapshot = {
+    method: 'POST',
+    url: `/api/openai/v1/${cleanPath}`,
+    headers: {
+      ...req.headers,
+      'content-type': 'application/json',
+    },
+  }
+  const body = Buffer.from(JSON.stringify(requestPayload))
+
+  runProxyJob(id, candidates, reqSnapshot, body, 'application/json').catch((error) => {
+    setProxyJob(id, {
+      status: 'error',
+      statusCode: 500,
+      payload: {
+        error: {
+          message: error instanceof Error ? error.message : '异步代理任务失败。',
+        },
+      },
+    })
+  })
+
+  sendJson(res, 202, { jobId: id })
+}
+
+async function handleProxyJobStatus(req, res, url) {
+  const session = getValidSession(req, res)
+  if (!session) {
+    sendJson(res, 401, { error: { message: '访问已过期，请重新输入口令。' } })
+    return
+  }
+
+  cleanupProxyJobs()
+  const id = decodeURIComponent(url.pathname.replace(/^\/api\/proxy-jobs\/?/, ''))
+  const job = proxyJobs.get(id)
+  if (!job) {
+    sendJson(res, 404, { error: { message: '任务不存在或已过期。' } })
+    return
+  }
+
+  if (job.status === 'running') {
+    sendJson(res, 200, {
+      status: 'running',
+      elapsedMs: Date.now() - job.createdAt,
+    })
+    return
+  }
+
+  sendJson(res, 200, {
+    status: job.status,
+    statusCode: job.statusCode,
+    payload: job.payload,
+    elapsedMs: job.updatedAt - job.createdAt,
+  })
+}
+
 async function handleApi(req, res, url) {
   if (url.pathname === '/api/health') {
     sendJson(res, 200, { ok: true })
@@ -693,6 +866,16 @@ async function handleApi(req, res, url) {
         }
       }),
     })
+    return
+  }
+
+  if (url.pathname === '/api/proxy-jobs' && req.method === 'POST') {
+    await handleProxyJobCreate(req, res)
+    return
+  }
+
+  if (url.pathname.startsWith('/api/proxy-jobs/') && req.method === 'GET') {
+    await handleProxyJobStatus(req, res, url)
     return
   }
 

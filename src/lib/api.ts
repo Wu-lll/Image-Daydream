@@ -183,11 +183,11 @@ function readProxyRuntimeFromPayload(payload: unknown): ProxyRuntimeInfo | undef
   return Object.values(info).some((value) => value !== undefined) ? info : undefined
 }
 
-function readProxyRuntimeInfo(response: Response, payload?: unknown): ProxyRuntimeInfo | undefined {
+function readProxyRuntimeInfo(response?: Response, payload?: unknown): ProxyRuntimeInfo | undefined {
   const payloadInfo = readProxyRuntimeFromPayload(payload)
-  const upstreamLine = response.headers.get('x-proxy-upstream-line') || undefined
-  const upstreamElapsedRaw = response.headers.get('x-proxy-upstream-elapsed-ms')
-  const normalizedRaw = response.headers.get('x-proxy-response-normalized')
+  const upstreamLine = response?.headers.get('x-proxy-upstream-line') || undefined
+  const upstreamElapsedRaw = response?.headers.get('x-proxy-upstream-elapsed-ms')
+  const normalizedRaw = response?.headers.get('x-proxy-response-normalized')
 
   const upstreamElapsedMs = upstreamElapsedRaw != null ? Number(upstreamElapsedRaw) : undefined
   const responseNormalized = normalizedRaw === '1' ? true : normalizedRaw === '0' ? false : undefined
@@ -221,6 +221,89 @@ async function fetchApiResponse(settings: AppSettings, input: RequestInfo | URL,
     }
 
     throw error
+  }
+}
+
+function waitForPoll(ms: number, signal: AbortSignal): Promise<void> {
+  if (signal.aborted) {
+    return Promise.reject(new DOMException('Aborted', 'AbortError'))
+  }
+
+  return new Promise((resolve, reject) => {
+    const timeoutId = window.setTimeout(resolve, ms)
+    signal.addEventListener('abort', () => {
+      window.clearTimeout(timeoutId)
+      reject(new DOMException('Aborted', 'AbortError'))
+    }, { once: true })
+  })
+}
+
+async function runServerProxyJob(
+  settings: AppSettings,
+  path: 'images/generations' | 'responses',
+  requestHeaders: Record<string, string>,
+  body: Record<string, unknown>,
+  signal: AbortSignal,
+): Promise<unknown> {
+  const createResponse = await fetchApiResponse(settings, '/api/proxy-jobs', {
+    method: 'POST',
+    headers: {
+      ...requestHeaders,
+      'Content-Type': 'application/json',
+    },
+    cache: 'no-store',
+    body: JSON.stringify({ path, body }),
+    signal,
+  })
+
+  if (!createResponse.ok) {
+    throw new Error(await getApiErrorMessage(createResponse))
+  }
+
+  const created = await createResponse.json() as { jobId?: string }
+  if (!created.jobId) {
+    throw new Error('云端代理没有返回任务编号。')
+  }
+
+  while (true) {
+    try {
+      await waitForPoll(1800, signal)
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new Error(`请求超时：超过 ${settings.timeout} 秒仍未完成，请稍后重试或调高请求超时。`)
+      }
+      throw error
+    }
+
+    const statusResponse = await fetchApiResponse(settings, `/api/proxy-jobs/${encodeURIComponent(created.jobId)}`, {
+      method: 'GET',
+      headers: requestHeaders,
+      cache: 'no-store',
+      signal,
+    })
+
+    if (!statusResponse.ok) {
+      throw new Error(await getApiErrorMessage(statusResponse))
+    }
+
+    const statusPayload = await statusResponse.json() as {
+      status?: string
+      statusCode?: number
+      payload?: unknown
+    }
+
+    if (statusPayload.status === 'running') continue
+
+    const payloadError = getPayloadErrorMessage(statusPayload.payload)
+    if (statusPayload.status === 'error' || payloadError) {
+      throw new Error(payloadError || `云端代理任务失败：HTTP ${statusPayload.statusCode || 502}`)
+    }
+
+    if (statusPayload.status === 'done') {
+      return statusPayload.payload
+    }
+
+    throw new Error('云端代理返回了未知任务状态。')
   }
 }
 
@@ -340,7 +423,8 @@ async function callImagesApiSingle(opts: CallApiOptions): Promise<CallApiResult>
   const timeoutId = setTimeout(() => controller.abort(), settings.timeout * 1000)
 
   try {
-    let response: Response
+    let response: Response | undefined
+    let payload: ImageApiResponse | undefined
 
     if (isEdit) {
       const formData = new FormData()
@@ -393,23 +477,39 @@ async function callImagesApiSingle(opts: CallApiOptions): Promise<CallApiResult>
         body.n = params.n
       }
 
-      response = await fetchApiResponse(settings, buildRequestUrl(settings, 'images/generations', proxyConfig), {
-        method: 'POST',
-        headers: {
-          ...requestHeaders,
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-store',
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      })
+      if (settings.transportMode === 'server') {
+        payload = await runServerProxyJob(
+          settings,
+          'images/generations',
+          requestHeaders,
+          body,
+          controller.signal,
+        ) as ImageApiResponse
+      } else {
+        response = await fetchApiResponse(settings, buildRequestUrl(settings, 'images/generations', proxyConfig), {
+          method: 'POST',
+          headers: {
+            ...requestHeaders,
+            'Content-Type': 'application/json',
+          },
+          cache: 'no-store',
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        })
+      }
     }
 
-    if (!response.ok) {
-      throw new Error(await getApiErrorMessage(response))
+    if (response) {
+      if (!response.ok) {
+        throw new Error(await getApiErrorMessage(response))
+      }
+      payload = await response.json() as ImageApiResponse
     }
 
-    const payload = await response.json() as ImageApiResponse
+    if (!payload) {
+      throw new Error('接口未返回响应数据')
+    }
+
     const payloadError = getPayloadErrorMessage(payload)
     if (payloadError) {
       throw new Error(payloadError)
@@ -506,22 +606,39 @@ async function callResponsesImageApiSingle(opts: CallApiOptions): Promise<CallAp
       tool_choice: 'required',
     }
 
-    const response = await fetchApiResponse(settings, buildRequestUrl(settings, 'responses', proxyConfig), {
-      method: 'POST',
-      headers: {
-        ...requestHeaders,
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store',
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    })
+    let response: Response | undefined
+    let payload: ResponsesApiResponse | undefined
+    if (settings.transportMode === 'server') {
+      payload = await runServerProxyJob(
+        settings,
+        'responses',
+        requestHeaders,
+        body,
+        controller.signal,
+      ) as ResponsesApiResponse
+    } else {
+      response = await fetchApiResponse(settings, buildRequestUrl(settings, 'responses', proxyConfig), {
+        method: 'POST',
+        headers: {
+          ...requestHeaders,
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store',
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      })
 
-    if (!response.ok) {
-      throw new Error(await getApiErrorMessage(response))
+      if (!response.ok) {
+        throw new Error(await getApiErrorMessage(response))
+      }
+
+      payload = await response.json() as ResponsesApiResponse
     }
 
-    const payload = await response.json() as ResponsesApiResponse
+    if (!payload) {
+      throw new Error('接口未返回响应数据')
+    }
+
     const payloadError = getPayloadErrorMessage(payload)
     if (payloadError) {
       throw new Error(payloadError)

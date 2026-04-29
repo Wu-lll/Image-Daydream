@@ -10,7 +10,7 @@ export default function SearchBar() {
   const setFilterFavorite = useStore((s) => s.setFilterFavorite)
 
   return (
-    <div className="gallery-toolbar mt-3 mb-4 flex flex-col gap-3 rounded-[1.6rem] border border-[rgba(63,86,110,0.12)] bg-[rgba(248,251,255,0.58)] p-2 shadow-[0_18px_48px_rgba(42,59,77,0.06)] backdrop-blur-xl sm:mt-4 sm:flex-row">
+    <div className="gallery-toolbar mt-2 mb-4 flex flex-col gap-3 rounded-[1.6rem] border border-[rgba(63,86,110,0.12)] bg-[rgba(248,251,255,0.58)] p-2 shadow-[0_18px_48px_rgba(42,59,77,0.06)] backdrop-blur-xl sm:mt-3 sm:flex-row">
       <div className="flex gap-2 flex-shrink-0 z-20">
         <button
           onClick={() => setFilterFavorite(!filterFavorite)}

@@ -876,7 +876,7 @@ export default function InputBar() {
             onChange={handleFileUpload}
           />
         </div>
-        <div className="bottom-manifesto pt-1 text-center [font-family:var(--font-serif-display)] text-[11px] italic leading-none tracking-[0.07em] text-[rgba(63,86,110,0.5)]">
+        <div className="bottom-manifesto translate-y-0.5 pt-1.5 text-center [font-family:var(--font-serif-display)] text-[12px] italic leading-tight tracking-[0.08em] text-[rgba(63,86,110,0.52)] sm:pt-2 sm:text-[12.5px]">
           for inspiration, for a quiet sheet of paper
         </div>
       </div>

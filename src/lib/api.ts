@@ -217,7 +217,7 @@ async function fetchApiResponse(settings: AppSettings, input: RequestInfo | URL,
     return await fetch(input, init)
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new Error(`请求超时：超过 ${settings.timeout} 秒仍未完成，请稍后重试或调高请求超时。`)
+      throw new Error(`请求超时：超过 ${getEffectiveTimeoutSeconds(settings)} 秒仍未完成，请稍后重试或调高请求超时。`)
     }
 
     if (error instanceof TypeError && /fetch/i.test(error.message)) {
@@ -232,6 +232,13 @@ async function fetchApiResponse(settings: AppSettings, input: RequestInfo | URL,
 
     throw error
   }
+}
+
+function getEffectiveTimeoutSeconds(settings: AppSettings): number {
+  // Cloud proxy jobs can spend time on primary line timeout plus failover.
+  // Keep direct/bridge user-configured, but avoid aborting server jobs while the
+  // backend is still legitimately working.
+  return settings.transportMode === 'server' ? Math.max(settings.timeout, 600) : settings.timeout
 }
 
 function waitForPoll(ms: number, signal: AbortSignal): Promise<void> {
@@ -280,7 +287,7 @@ async function runServerProxyJob(
       await waitForPoll(1800, signal)
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        throw new Error(`请求超时：超过 ${settings.timeout} 秒仍未完成，请稍后重试或调高请求超时。`)
+        throw new Error(`请求超时：超过 ${getEffectiveTimeoutSeconds(settings)} 秒仍未完成，请稍后重试或调高请求超时。`)
       }
       throw error
     }
@@ -430,7 +437,7 @@ async function callImagesApiSingle(opts: CallApiOptions): Promise<CallApiResult>
   const requestHeaders = createRequestHeaders(settings)
 
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), settings.timeout * 1000)
+  const timeoutId = setTimeout(() => controller.abort(), getEffectiveTimeoutSeconds(settings) * 1000)
 
   try {
     let response: Response | undefined
@@ -606,7 +613,7 @@ async function callResponsesImageApiSingle(opts: CallApiOptions): Promise<CallAp
   const proxyConfig = readClientDevProxyConfig()
   const requestHeaders = createRequestHeaders(settings)
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), settings.timeout * 1000)
+  const timeoutId = setTimeout(() => controller.abort(), getEffectiveTimeoutSeconds(settings) * 1000)
 
   try {
     const body = {

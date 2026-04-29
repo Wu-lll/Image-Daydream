@@ -288,7 +288,7 @@ export default function SettingsModal() {
                   max={600}
                   className={inputClass}
                 />
-                <p className={hintClass}>生成通常需要 30-60 秒，请保持页面打开。</p>
+                <p className={hintClass}>生成通常需要 30-90 秒；云端代理会自动至少等待 600 秒，请保持页面打开。</p>
               </label>
             </div>
           </section>

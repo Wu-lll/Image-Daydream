@@ -662,7 +662,7 @@ export default function InputBar() {
         />
       )}
 
-      <div data-input-bar className="fixed bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-30 w-full max-w-4xl px-3 sm:px-4 transition-all duration-300">
+      <div data-input-bar className="fixed bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 z-30 w-full max-w-4xl px-3 sm:px-4 transition-all duration-300">
         {selectedTaskIds.length > 0 && (
           <div className="flex justify-center mb-3">
             <div className="rounded-full border border-[rgba(63,86,110,0.18)] bg-[rgba(29,39,49,0.92)] backdrop-blur shadow-lg flex items-center p-1 pointer-events-auto">
@@ -876,7 +876,7 @@ export default function InputBar() {
             onChange={handleFileUpload}
           />
         </div>
-        <div className="bottom-manifesto translate-y-0.5 pt-1.5 text-center [font-family:var(--font-serif-display)] text-[12px] italic leading-tight tracking-[0.08em] text-[rgba(63,86,110,0.52)] sm:pt-2 sm:text-[12.5px]">
+        <div className="bottom-manifesto translate-y-0.5 pt-1.5 text-center [font-family:var(--font-serif-display)] text-[13px] font-medium italic leading-tight tracking-[0.08em] text-[rgba(42,64,88,0.68)] sm:pt-2 sm:text-[14px]">
           for inspiration, for a quiet sheet of paper
         </div>
       </div>
